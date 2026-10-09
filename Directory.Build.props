@@ -5,7 +5,7 @@
     variables (or passing /p:...) instead of editing the project files.
   -->
   <PropertyGroup>
-    <!-- Root of the CPython install (3.12, 3.13 or 3.14) used by the Release-3.12 configuration. -->
+    <!-- Root of the CPython install (3.12, 3.13, 3.14 or 3.15) used by the Release-3.12 configuration. -->
     <PythonHome Condition="'$(PythonHome)' == '' And '$(PYTHON_HOME)' != ''">$(PYTHON_HOME)</PythonHome>
     <PythonHome Condition="'$(PythonHome)' == ''">C:\Python312</PythonHome>
     <!-- DIA SDK ships inside every Visual Studio edition: &lt;VS&gt;\DIA SDK. -->

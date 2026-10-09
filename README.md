@@ -25,7 +25,7 @@ The ideaology of **pydia3** is as follows:
 
 ## Installation
 
-pydia3 is Windows-only (x64) and supports **CPython 3.12, 3.13 and 3.14**.
+pydia3 is Windows-only (x64) and supports **CPython 3.12, 3.13, 3.14 and 3.15**.
 
 ```powershell
 pip install pydia3
@@ -84,14 +84,14 @@ for a full example that rebuilds C headers (enums and structs) from PDBs, and
 * Windows x64.
 * Visual Studio 2022 with the **Desktop development with C++** workload (this
   includes the DIA SDK, at `<VS install>\DIA SDK`).
-* CPython 3.12, 3.13 or 3.14 x64 (python.org installer), including its headers and import libraries.
+* CPython 3.12, 3.13, 3.14 or 3.15 x64 (python.org installer), including its headers and import libraries.
 
 ### Build
 
 From a *Developer PowerShell for VS 2022*:
 
 ```powershell
-# Where the target Python (3.12-3.14) is installed (defaults to C:\Python312).
+# Where the target Python (3.12-3.15) is installed (defaults to C:\Python312).
 # The extension is built for, and the wheel tagged for, this interpreter.
 $env:PYTHON_HOME = python -c "import sys; print(sys.base_prefix)"
 # Optional: only needed if the DIA SDK isn't at <VS install>\DIA SDK.

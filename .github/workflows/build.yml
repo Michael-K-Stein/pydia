@@ -14,13 +14,16 @@ jobs:
   build:
     needs: lint
     runs-on: windows-2022
+    # 3.15 is not released yet; its setup-python step fails until it is stable.
+    # TODO: remove once 3.15 is stable.
+    continue-on-error: ${{ matrix.python == '3.15' }}
     strategy:
       # Run one version at a time, oldest first, and stop at the first failure
       # so newer versions only build once 3.12 passes.
       fail-fast: true
       max-parallel: 1
       matrix:
-        python: ["3.12", "3.13", "3.14"]
+        python: ["3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@v7
 
