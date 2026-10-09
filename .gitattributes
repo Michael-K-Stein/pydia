@@ -1,0 +1,16 @@
+# Store text as LF in the repository and check it out as LF everywhere, so
+# local tools match CI (clang-format and ruff output depend on line endings).
+* text=auto eol=lf
+
+# Windows-native files that expect CRLF.
+*.sln text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary test resources.
+*.i64 binary
+*.pdb binary
+*.dll binary
+*.exe binary
+*.pyd binary
