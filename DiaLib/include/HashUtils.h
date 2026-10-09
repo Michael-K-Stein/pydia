@@ -1,12 +1,13 @@
 #pragma once
 #include <algorithm>
 #include <cstdlib>
+#include <functional>
 #include <type_traits>
 
 inline void hash_combine(std::size_t& seed) {}
 
 template <typename T, typename... Rest>
-inline void hash_combine(std::size_t& seed, const T& v, Rest... rest)
+inline void hash_combine(std::size_t& seed, const T& v, const Rest&... rest)
 {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);

@@ -37,8 +37,13 @@ std::set<UserDefinedType> UserDefinedType::queryForwardDependencies() const
 
 Data UserDefinedType::getMember(const AnyString& memberName) const
 {
-    auto dataMembers = enumerate<Data>(*this, SymTagData, memberName.c_str());
-    if (1 != dataMembers.count())
+    auto dataMembers      = enumerate<Data>(*this, SymTagData, memberName.c_str());
+    const auto matchCount = dataMembers.count();
+    if (0 == matchCount)
+    {
+        throw dia::SymbolNotFoundException("No member matches the given name!");
+    }
+    if (1 != matchCount)
     {
         throw dia::TooManyMatchesForFindException("Too many members match the given name!");
     }

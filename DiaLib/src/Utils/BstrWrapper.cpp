@@ -3,32 +3,52 @@
 #include "BstrWrapper.h"
 
 BstrWrapper::BstrWrapper(const BstrWrapper& other)
-    : BstrWrapper{other.m_data}
 {
+    // SysAllocString(nullptr) returns nullptr, which is not an allocation failure here.
+    if (nullptr != other.m_data)
+    {
+        m_data = SysAllocStringLen(other.m_data, SysStringLen(other.m_data));
+        if (nullptr == m_data)
+        {
+            throw std::bad_alloc();
+        }
+    }
 }
 
-BstrWrapper BstrWrapper::operator=(const BstrWrapper& other)
+BstrWrapper& BstrWrapper::operator=(const BstrWrapper& other)
 {
-    BstrWrapper v(other);
-    return v;
+    if (this != &other)
+    {
+        BstrWrapper copy(other);
+        *this = std::move(copy);
+    }
+    return *this;
 }
 
 BstrWrapper::BstrWrapper(BstrWrapper&& other) noexcept { move(std::move(other)); }
 
-BstrWrapper BstrWrapper::operator=(BstrWrapper&& other) noexcept
+BstrWrapper& BstrWrapper::operator=(BstrWrapper&& other) noexcept
 {
-    BstrWrapper v(std::move(other));
-    return v;
+    if (this != &other)
+    {
+        SysFreeString(m_data);
+        move(std::move(other));
+    }
+    return *this;
 }
 
 BstrWrapper::BstrWrapper(const BSTR& data)
 {
-    auto dataCopy = SysAllocString(data);
-    if (nullptr == dataCopy)
+    // A null BSTR is a valid empty string, and SysAllocStringLen(nullptr, 0) would not preserve it.
+    if (nullptr == data)
+    {
+        return;
+    }
+    m_data = SysAllocStringLen(data, SysStringLen(data));
+    if (nullptr == m_data)
     {
         throw std::bad_alloc();
     }
-    m_data = std::move(dataCopy);
 }
 
 BstrWrapper::BstrWrapper(BSTR&& data)
@@ -79,13 +99,17 @@ size_t BstrWrapper::length() const
 
 BstrWrapper::operator std::wstring() const
 {
-    std::wstring v(m_data, SysStringLen(m_data));
-    return v;
+    // A null BSTR is a valid empty string.
+    if (nullptr == m_data)
+    {
+        return std::wstring{};
+    }
+    return std::wstring(m_data, SysStringLen(m_data));
 }
 
-std::wstring BstrWrapper::operator+(const std::wstring& s) const { return s + std::wstring(*this); }
+std::wstring BstrWrapper::operator+(const std::wstring& s) const { return std::wstring(*this) + s; }
 
-std::wstring BstrWrapper::operator+(const wchar_t* s) const { return std::wstring{s, wcslen(s)} + std::wstring{*this}; }
+std::wstring BstrWrapper::operator+(const wchar_t* s) const { return std::wstring{*this} + std::wstring{s, wcslen(s)}; }
 
 void BstrWrapper::move(BstrWrapper&& other) noexcept
 {
@@ -95,6 +119,6 @@ void BstrWrapper::move(BstrWrapper&& other) noexcept
 
 std::wostream& operator<<(std::wostream& os, const BstrWrapper& bstr)
 {
-    os << bstr.get();
+    os << std::wstring(bstr);
     return os;
 }

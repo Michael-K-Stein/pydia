@@ -27,6 +27,5 @@ protected:
 private:
     // Use `getGlobalScope`
     mutable Symbol m_globalScope{};
-    bool m_openned{false};
 };
 }  // namespace dia

@@ -36,6 +36,7 @@ DataSource::DataSource(const AnyString& filePath)
 }
 
 DataSource::DataSource(const AnyString& filePath, const AnyString& symstoreDirectory)
+    : DataSource{}
 {
 
     addSymtoreDirectory(symstoreDirectory);
@@ -263,7 +264,12 @@ void DataSource::loadDataFromArbitraryFile(const std::wstring& filePath)
     // File did not have a known extension, try deducing it using file
     // signature magics
 
-    std::ifstream unknownFile{filePath};
+    // Binary mode is required: the PDB magic contains CRLF and Ctrl-Z, which text mode would translate or treat as EOF.
+    std::ifstream unknownFile{filePath, std::ios::binary};
+    if (!unknownFile)
+    {
+        throw InvalidFileFormatException("Failed to open file!");
+    }
     char magicBuffer[max(sizeof(PDB_FILE_MAGIC), sizeof(PE_FILE_MAGIC))] = {};
     // If the file is too small to read a magic, it is most definitely
     // corrup anyway.

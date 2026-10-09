@@ -5,7 +5,7 @@
 
 namespace dia
 {
-bool Session::operator!() const { return !m_openned; }
+bool Session::operator!() const { return ComWrapper<IDiaSession>::operator!(); }
 
 Symbol& Session::getGlobalScope() const
 {
@@ -36,10 +36,10 @@ Symbol Session::getSymbolById(DWORD symbolId) const
 
 Symbol Session::findSymbolByRVA(const RVA& rva, enum SymTagEnum symTag) const
 {
-    IDiaSymbol* retVal = nullptr;
-    const auto result  = get()->findSymbolByRVA(rva, symTag, &retVal);
+    Symbol foundSymbol{};
+    const auto result = get()->findSymbolByRVA(rva, symTag, &foundSymbol.makeFromRaw());
     CHECK_DIACOM_EXCEPTION("findSymbolByRVA failed!", result);
-    return Symbol{retVal};
+    return foundSymbol;
 }
 
 bool Session::areSymbolsEquivalent(const Symbol& symbolA, const Symbol& symbolB) const

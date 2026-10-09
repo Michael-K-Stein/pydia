@@ -28,9 +28,9 @@ public:
         : DiaSymbolEnumerator() {};
 
     DiaSymbolEnumerator(const DiaSymbolEnumerator& other);
-    DiaSymbolEnumerator operator=(const DiaSymbolEnumerator& other);
+    DiaSymbolEnumerator& operator=(const DiaSymbolEnumerator& other);
     DiaSymbolEnumerator(DiaSymbolEnumerator&& other) noexcept;
-    DiaSymbolEnumerator operator=(DiaSymbolEnumerator&& other) noexcept;
+    DiaSymbolEnumerator& operator=(DiaSymbolEnumerator&& other) noexcept;
 
     static DiaSymbolEnumerator enumerate(const Symbol& parentSymbol) { return ::dia::enumerate<T>(parentSymbol, SymTagNull); }
 
@@ -179,17 +179,27 @@ private:
 template <typename T>
 inline DiaSymbolEnumerator<T>::DiaSymbolEnumerator(const DiaSymbolEnumerator& other)
 {
-    _ASSERT(nullptr == m_enumSymbols);
+    if (nullptr == other.m_enumSymbols)
+    {
+        return;
+    }
     const auto result = other.m_enumSymbols->Clone(&m_enumSymbols);
     CHECK_DIACOM_EXCEPTION("Failed to clone symbol's enumerator!", result);
 }
 
 template <typename T>
-inline DiaSymbolEnumerator<T> DiaSymbolEnumerator<T>::operator=(const DiaSymbolEnumerator& other)
+inline DiaSymbolEnumerator<T>& DiaSymbolEnumerator<T>::operator=(const DiaSymbolEnumerator& other)
 {
-    _ASSERT(nullptr == m_enumSymbols);
-    const auto result = other.m_enumSymbols->Clone(&m_enumSymbols);
-    CHECK_DIACOM_EXCEPTION("Failed to clone symbol's enumerator!", result);
+    if (this != &other)
+    {
+        CComPtr<IDiaEnumSymbols> clonedEnumerator{nullptr};
+        if (nullptr != other.m_enumSymbols)
+        {
+            const auto result = other.m_enumSymbols->Clone(&clonedEnumerator);
+            CHECK_DIACOM_EXCEPTION("Failed to clone symbol's enumerator!", result);
+        }
+        m_enumSymbols = std::move(clonedEnumerator);
+    }
     return *this;
 }
 
@@ -204,9 +214,8 @@ inline DiaSymbolEnumerator<T>::DiaSymbolEnumerator(DiaSymbolEnumerator&& other) 
 }
 
 template <typename T>
-inline DiaSymbolEnumerator<T> DiaSymbolEnumerator<T>::operator=(DiaSymbolEnumerator&& other) noexcept
+inline DiaSymbolEnumerator<T>& DiaSymbolEnumerator<T>::operator=(DiaSymbolEnumerator&& other) noexcept
 {
-    _ASSERT(nullptr == m_enumSymbols);
     if (this != &other)
     {
         move(std::move(other));
@@ -223,7 +232,11 @@ inline typename DiaSymbolEnumerator<T>::Iterator DiaSymbolEnumerator<T>::begin()
         return end();
     }
 
-    return Iterator(m_enumSymbols);
+    // Iterate over a clone: the iterator advances the enumerator it is given, which would leave this one exhausted for any later iteration.
+    CComPtr<IDiaEnumSymbols> clonedEnumerator{nullptr};
+    const auto result = m_enumSymbols->Clone(&clonedEnumerator);
+    CHECK_DIACOM_EXCEPTION("Failed to clone symbol's enumerator!", result);
+    return Iterator(std::move(clonedEnumerator));
 }
 
 // End iterator
