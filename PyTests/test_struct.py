@@ -103,7 +103,7 @@ typedef struct MyPackedStruct_s
 int main() { MyPackedStruct a = {}; a.Member1 = 'q'; return a.Member7; }
     """
     test_binary = compile_resource(source_code, windows_headers=False)
-    data_source = DataSource(get_adhoc_test_file(test_binary.name + ".pdb"))
+    data_source = DataSource(get_adhoc_test_file(test_binary + ".pdb"))
     assert data_source
     struct_name = "MyPackedStruct_s"
     struct = data_source.get_struct(struct_name)
