@@ -40,8 +40,7 @@ private:
         if (0 != size && nullptr != buffer)
         {
             text.assign(buffer, size);
-            while (!text.empty() && (text.back() == '' || text.back() == '
-' || text.back() == ' ' || text.back() == '.'))
+            while (!text.empty() && (text.back() == '\r' || text.back() == '\n' || text.back() == ' ' || text.back() == '.'))
             {
                 text.pop_back();
             }
