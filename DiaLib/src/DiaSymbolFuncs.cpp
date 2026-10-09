@@ -554,10 +554,10 @@ ULONG getVirtualTableShapeId(const Symbol& symbol)
     return retVal;
 }
 
-const IDiaLineNumber* getSrcLineOnTypeDefn(const Symbol& symbol)
+const LineNumber getSrcLineOnTypeDefn(const Symbol& symbol)
 {
-    IDiaLineNumber* retVal = 0;
-    const auto result      = symbol.get()->getSrcLineOnTypeDefn(&retVal);
+    LineNumber retVal{};
+    const auto result = symbol.get()->getSrcLineOnTypeDefn(&retVal.makeFromRaw().p);
     CHECK_DIACOM_EXCEPTION("get_srcLineOnTypeDefn failed!", result);
     return retVal;
 }
@@ -1764,11 +1764,10 @@ const BstrWrapper getUnused(const Symbol& symbol)
     return BstrWrapper{std::move(retVal)};
 }
 
-const VARIANT getValue(const Symbol& symbol)
+const Variant getValue(const Symbol& symbol)
 {
-    VARIANT retVal;
-    VariantInit(&retVal);
-    const auto result = symbol.get()->get_value(&retVal);
+    Variant retVal;
+    const auto result = symbol.get()->get_value(retVal.put());
     CHECK_DIACOM_EXCEPTION("get_value failed!", result);
     return retVal;
 }

@@ -53,15 +53,22 @@ const std::wstring getBasicSymbolSearchPath(bool withSrv)
 #else
             UNREFERENCED_PARAMETER(e);
 #endif
-            if (withSrv)
-            {
-                s_symbolSearchPath = L"srv*C:\\Symbols*https://msdl.microsoft.com/download/symbols";
-            }
-            else
-            {
-                s_symbolSearchPath = L"C:\\Symbols*https://msdl.microsoft.com/download/symbols";
-            }
+            s_symbolSearchPath = L"C:\\Symbols*https://msdl.microsoft.com/download/symbols";
         }
+    }
+
+    // Normalize the optional leading `srv*` so callers can safely prepend or omit it themselves.
+    // Only the environment lookup is cached above: the prefix depends on the caller's `withSrv`.
+    constexpr wchar_t SRV_PREFIX[]     = L"srv*";
+    constexpr size_t SRV_PREFIX_LENGTH = (sizeof(SRV_PREFIX) / sizeof(SRV_PREFIX[0])) - 1;
+    const bool hasSrvPrefix            = 0 == _wcsnicmp(s_symbolSearchPath.c_str(), SRV_PREFIX, SRV_PREFIX_LENGTH);
+    if (withSrv && !hasSrvPrefix)
+    {
+        return SRV_PREFIX + s_symbolSearchPath;
+    }
+    if (!withSrv && hasSrvPrefix)
+    {
+        return s_symbolSearchPath.substr(SRV_PREFIX_LENGTH);
     }
     return s_symbolSearchPath;
 }

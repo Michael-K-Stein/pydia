@@ -22,7 +22,8 @@ public:
 
         const auto types                                 = dataSource.getStruct("_LDR_DDAG_NODE").queryDependencies();
         std::vector<std::wstring> typeNames;
-        std::transform(types.begin(), types.end(), std::back_inserter(typeNames), [](const dia::UserDefinedType& type) { return type.getName(); });
+        std::transform(types.begin(), types.end(), std::back_inserter(typeNames),
+                       [](const dia::Symbol& type) { return static_cast<const dia::UserDefinedType&>(type).getName(); });
 
         for (const auto& dependencyName : typeNames)
         {

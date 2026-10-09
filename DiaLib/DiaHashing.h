@@ -21,6 +21,12 @@ struct hash<VARIANT>
 };
 
 template <>
+struct hash<dia::Variant>
+{
+    size_t operator()(const dia::Variant& v) const { return hash<VARIANT>()(v); }
+};
+
+template <>
 struct hash<dia::Enum>
 {
     size_t operator()(const dia::Enum& v) const;

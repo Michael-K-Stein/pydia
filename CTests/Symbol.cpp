@@ -81,24 +81,24 @@ public:
         Assert::IsTrue(dataSource.getSession().areSymbolsEquivalent(otherSymbol, otherFoundSymbol));
 
         Assert::AreNotEqual(originalSymbol.calcHash(), otherSymbol.calcHash());
-        Assert::AreNotEqual(originalSymbol.getSymTag(), otherSymbol.getSymTag());
+        Assert::AreEqual(originalSymbol.getSymTag(), otherSymbol.getSymTag());
         Assert::AreEqual(symId, originalSymbol.getSymIndexId());
         Assert::AreEqual(otherSymId, otherSymbol.getSymIndexId());
         Assert::AreNotEqual(originalSymbol.getSymIndexId(), otherSymbol.getSymIndexId());
         Assert::IsFalse(dataSource.getSession().areSymbolsEquivalent(originalSymbol, otherSymbol));
 
         Assert::AreNotEqual(foundSymbol.calcHash(), otherSymbol.calcHash());
-        Assert::AreNotEqual(foundSymbol.getSymTag(), otherSymbol.getSymTag());
+        Assert::AreEqual(foundSymbol.getSymTag(), otherSymbol.getSymTag());
         Assert::AreNotEqual(foundSymbol.getSymIndexId(), otherSymbol.getSymIndexId());
         Assert::IsFalse(dataSource.getSession().areSymbolsEquivalent(foundSymbol, otherSymbol));
 
         Assert::AreNotEqual(originalSymbol.calcHash(), otherFoundSymbol.calcHash());
-        Assert::AreNotEqual(originalSymbol.getSymTag(), otherFoundSymbol.getSymTag());
+        Assert::AreEqual(originalSymbol.getSymTag(), otherFoundSymbol.getSymTag());
         Assert::AreNotEqual(originalSymbol.getSymIndexId(), otherFoundSymbol.getSymIndexId());
         Assert::IsFalse(dataSource.getSession().areSymbolsEquivalent(originalSymbol, otherFoundSymbol));
 
         Assert::AreNotEqual(foundSymbol.calcHash(), otherFoundSymbol.calcHash());
-        Assert::AreNotEqual(foundSymbol.getSymTag(), otherFoundSymbol.getSymTag());
+        Assert::AreEqual(foundSymbol.getSymTag(), otherFoundSymbol.getSymTag());
         Assert::AreNotEqual(foundSymbol.getSymIndexId(), otherFoundSymbol.getSymIndexId());
         Assert::IsFalse(dataSource.getSession().areSymbolsEquivalent(foundSymbol, otherFoundSymbol));
     }

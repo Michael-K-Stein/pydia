@@ -147,6 +147,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="include\AnyString.h" />
     <ClInclude Include="include\BstrWrapper.h" />
+    <ClInclude Include="include\VariantWrapper.h" />
     <ClInclude Include="include\ComWrapper.h" />
     <ClInclude Include="include\DiaDataSource.h" />
     <ClInclude Include="include\DiaPrint.h" />

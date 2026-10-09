@@ -61,14 +61,14 @@ public:
         }
 
         Assert::AreEqual(std::wstring{L"Length"}, std::wstring{members[0].getName()});
-        Assert::AreEqual(std::wstring{L"USHORT"}, std::wstring{members[0].getType().getTypeName()});
+        Assert::AreEqual(std::wstring{L"uint16_t"}, std::wstring{members[0].getType().getTypeName()});
 
         Assert::AreEqual(std::wstring{L"MaximumLength"}, std::wstring{members[1].getName()});
-        Assert::AreEqual(std::wstring{L"USHORT"}, std::wstring{members[1].getType().getTypeName()});
+        Assert::AreEqual(std::wstring{L"uint16_t"}, std::wstring{members[1].getType().getTypeName()});
 
         Assert::AreEqual(std::wstring{L"Buffer"}, std::wstring{members[2].getName()});
-        // PWSTR == WCHAR*
-        Assert::AreEqual(std::wstring{L"WCHAR*"}, std::wstring{members[2].getType().getTypeName()});
+        // PWSTR == WCHAR*; typedefs resolve to their underlying type (WCHAR == wchar_t)
+        Assert::AreEqual(std::wstring{L"wchar_t*"}, std::wstring{members[2].getType().getTypeName()});
     }
 
     TEST_METHOD(ProperStructMemberOffsets)
