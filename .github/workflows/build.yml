@@ -8,10 +8,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   build:
+    needs: lint
     runs-on: windows-2022
     strategy:
-      fail-fast: false
+      # Run one version at a time, oldest first, and stop at the first failure
+      # so newer versions only build once 3.12 passes.
+      fail-fast: true
+      max-parallel: 1
       matrix:
         python: ["3.12", "3.13", "3.14"]
     steps:
