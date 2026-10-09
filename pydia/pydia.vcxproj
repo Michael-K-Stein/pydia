@@ -288,12 +288,12 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;$(CPythonPath)\PCbuild\amd64;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\amd64;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>DiaSymbols.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='pydia_d|x64'">
@@ -309,12 +309,12 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;$(CPythonPath)\PCbuild\amd64;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\amd64;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalDependencies>DiaSymbols.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

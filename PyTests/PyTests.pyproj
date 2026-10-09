@@ -14,7 +14,6 @@
     </InterpreterId>
     <IsWindowsApplication>True</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterPath>C:\Users\mkupe\Code\cpython\PCbuild\amd64\python_d.exe</InterpreterPath>
     <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
     <TestFramework>pytest</TestFramework>
     <UnitTestPattern>test*.py</UnitTestPattern>
