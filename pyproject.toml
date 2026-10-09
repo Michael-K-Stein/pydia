@@ -1,0 +1,14 @@
+# Tooling configuration for the repository. The distributable package's own
+# metadata lives in setup/pyproject.toml.
+
+[tool.ruff]
+target-version = "py312"
+extend-exclude = ["x64", "out", "PyTests/PyTests.py"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "W", "I", "UP", "B"]
+# Tests compare against True/False explicitly; keep that style.
+ignore = ["E712", "B011"]
+
+[tool.pytest.ini_options]
+testpaths = ["PyTests"]

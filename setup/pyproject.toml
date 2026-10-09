@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydia3"
+version = "0.0.1"
+description = "Python interface for Microsoft's Debug Interface Access (DIA) SDK."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Michael K. Steinberg", email = "m.kuper.steinberg@gmail.com" }]
+requires-python = ">=3.12,<3.13"
+keywords = ["pdb", "dia", "debug", "symbols", "windows"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: C++",
+    "Topic :: Software Development :: Debuggers",
+]
+
+[project.urls]
+Homepage = "https://github.com/Michael-K-Stein/pydia"
+Issues = "https://github.com/Michael-K-Stein/pydia/issues"
+
+[tool.setuptools]
+packages = ["pydia"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+pydia = ["*.pyd"]

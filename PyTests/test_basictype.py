@@ -1,5 +1,5 @@
-
 from common import get_ntdll_datasource
+
 import pydia
 from pydia import SymTag
 

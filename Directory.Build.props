@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Machine-specific tool locations. Override by setting the environment
+    variables (or passing /p:...) instead of editing the project files.
+  -->
+  <PropertyGroup>
+    <!-- Root of the CPython install used by the Release-3.12 configuration. -->
+    <PythonHome Condition="'$(PythonHome)' == '' And '$(PYTHON_HOME)' != ''">$(PYTHON_HOME)</PythonHome>
+    <PythonHome Condition="'$(PythonHome)' == ''">C:\Python312</PythonHome>
+    <!-- DIA SDK ships inside every Visual Studio edition: &lt;VS&gt;\DIA SDK. -->
+    <DiaSdkDir Condition="'$(DiaSdkDir)' == '' And '$(DIA_SDK_DIR)' != ''">$(DIA_SDK_DIR)</DiaSdkDir>
+    <DiaSdkDir Condition="'$(DiaSdkDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildExtensionsPath)\..\DIA SDK'))</DiaSdkDir>
+  </PropertyGroup>
+</Project>

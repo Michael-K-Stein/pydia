@@ -3,21 +3,35 @@ import subprocess
 from pathlib import Path
 
 
+def get_vs_install_dir() -> Path:
+    """
+    Locate the newest Visual Studio installation (any edition) using vswhere.
+    """
+    vswhere = (
+        Path(os.environ.get("ProgramFiles(x86)", R"C:\Program Files (x86)"))
+        / "Microsoft Visual Studio"
+        / "Installer"
+        / "vswhere.exe"
+    )
+    result = subprocess.run(
+        [str(vswhere), "-latest", "-property", "installationPath"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return Path(result.stdout.strip())
+
+
 def get_msvc_dir():
     """
-    Find the most recent MSVC directory in the given Visual Studio path.
+    Find the most recent MSVC toolset directory of the installed Visual Studio.
     """
-    msvc_base_path = Path(
-        R"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC"
-    )
-    msvc_dirs = [d for d in msvc_base_path.iterdir() if d.is_dir()]
+    msvc_base_path = get_vs_install_dir() / "VC" / "Tools" / "MSVC"
+    msvc_dirs = sorted(d for d in msvc_base_path.iterdir() if d.is_dir())
     if not msvc_dirs:
         raise FileNotFoundError("No MSVC directories found.")
-    # Sort directories by descending modified time and return the first
-    latest_msvc_dir = sorted(msvc_dirs, key=lambda d: d.stat().st_mtime, reverse=True)[
-        0
-    ]
-    return latest_msvc_dir
+    # Toolset directories are named by version, so the last one is the newest
+    return msvc_dirs[-1]
 
 
 MSVC_DIR = get_msvc_dir()
@@ -51,12 +65,12 @@ def build_resource(
 
     # Common compiler arguments
     cl_args = [
-        f'/I{os.path.join(MSVC_DIR, "include")}',
+        f"/I{os.path.join(MSVC_DIR, 'include')}",
         "/Zi",
         "/Od",
         "/Oi",
-        f'/Fd{abs_rel_output(".pdb")}',
-        f'/Fo{abs_rel_output(".obj")}',
+        f"/Fd{abs_rel_output('.pdb')}",
+        f"/Fo{abs_rel_output('.obj')}",
     ]
 
     lib_paths = [
@@ -73,7 +87,7 @@ def build_resource(
             "/IC:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt",
             "/IC:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um",
             "/IC:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared",
-            f'/I{os.path.join(MSVC_DIR , "atlmfc" , "include")}',
+            f"/I{os.path.join(MSVC_DIR, 'atlmfc', 'include')}",
         ]
     else:
         cl_args += [

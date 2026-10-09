@@ -27,8 +27,7 @@
         _ASSERT_EXPR(nullptr != __self->dataSource, L"Internal dataSource pointer can never be null!");                                              \
     } while (0)
 #define PYDIA_SAFE_TRY_EXCEPT_NOT_AVAILABLE_RETURN_FALSE(unsafeCode)                                                                                 \
-    PYDIA_SAFE_TRY_EXCEPT_NOT_AVAILABLE(                                                                                                             \
-        unsafeCode, { return PyBool_FromLong(false); }, PYDIA_SAFE_TRIVIAL_ERROR_HANDLER())
+    PYDIA_SAFE_TRY_EXCEPT_NOT_AVAILABLE(unsafeCode, { return PyBool_FromLong(false); }, PYDIA_SAFE_TRIVIAL_ERROR_HANDLER())
 
 static PyObject* PyDiaRawSymbol_FromSymbol(dia::Symbol&& symbol, PyDiaDataSource* dataSource)
 {

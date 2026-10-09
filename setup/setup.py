@@ -1,23 +1,16 @@
-from setuptools import setup
+"""Packaging shim: all metadata lives in pyproject.toml.
 
-setup(
-    name="pydia3",
-    version="0.0.1",
-    description="Python interface for Microsoft's Debug Interface Access (DIA) SDK.",
-    long_description=open("README.md").read(),
-    long_description_content_type="text/markdown",
-    author="Michael K. Steinberg",
-    author_email="m.kuper.steinberg@gmail.com",
-    url="https://github.com/Michael-K-Stein/pydia",
-    license="MIT",  # Update with your license
-    packages=["pydia"],  # Use the internal module name here
-    package_data={
-        "pydia": ["*.pyd"],
-    },
-    include_package_data=True,  # Include non-Python files
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Operating System :: Microsoft :: Windows",
-    ],
-    python_requires=">=3.12",
-)
+The only thing pyproject.toml cannot express is that the package ships a
+prebuilt extension module, so the wheel must be tagged cp312-cp312-win_amd64
+rather than py3-none-any.
+"""
+
+from setuptools import Distribution, setup
+
+
+class BinaryDistribution(Distribution):
+    def has_ext_modules(self):
+        return True
+
+
+setup(distclass=BinaryDistribution)

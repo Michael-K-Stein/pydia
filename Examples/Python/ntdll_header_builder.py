@@ -1,7 +1,7 @@
 import argparse
 import os
-from typing import Iterable
 from collections import defaultdict, deque
+from collections.abc import Iterable
 
 # Must be after!
 # sys.path.append(os.path.abspath(os.curdir))
@@ -222,11 +222,8 @@ class UdtData:
     def members(self):
         members_string = ""
         am_inside_union = False
-        last_offset = -1
 
         all_members = list(self.data.enumerate_members())
-
-        next_expected_offset = 0
 
         for i, raw_member in enumerate(all_members):
             entered_union_now = False

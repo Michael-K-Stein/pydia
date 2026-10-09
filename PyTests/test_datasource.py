@@ -1,17 +1,19 @@
 import os
+
 import pytest
 from common import get_test_resources_dir
+
 from pydia import DataSource, Error
 
 
 def test_create_empty_datasource():
-    with pytest.raises(TypeError) as e_info:
-        data_source = DataSource()
+    with pytest.raises(TypeError):
+        DataSource()
 
 
 def test_create_datasource_from_nonexistant_file():
-    with pytest.raises(Error) as e_info:
-        data_source = DataSource("$$THIS FILE NAME~#@!@# DOES NOT EXIST")
+    with pytest.raises(Error):
+        DataSource("$$THIS FILE NAME~#@!@# DOES NOT EXIST")
 
 
 def test_create_datasource_from_pdb():

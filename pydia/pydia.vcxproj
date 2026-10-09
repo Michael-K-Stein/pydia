@@ -185,13 +185,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;$(DiaSdkDir)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -205,13 +205,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;$(DiaSdkDir)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -227,7 +227,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -235,7 +235,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;$(DiaSdkDir)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;DiaSymbols.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -251,7 +251,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -259,7 +259,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\win32;$(DiaSdkDir)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;DiaSymbols.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -279,13 +279,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;$(CPythonPath)\PCbuild\amd64;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\amd64\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;$(CPythonPath)\PCbuild\amd64;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -300,13 +300,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;$(CPythonPath)\PCbuild\amd64;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\amd64\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\mkupe\source\repos\DiaSymbolMaster\x64\Debug;$(CPythonPath)\PCbuild\amd64;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -323,7 +323,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -331,7 +331,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\amd64;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\amd64\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CPythonPath)\PCbuild\amd64;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -347,7 +347,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;C:\Python312\include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(PythonHome)\include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -355,7 +355,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Python312\libs;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\amd64\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PythonHome)\libs;$(DiaSdkDir)\lib\amd64\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
@@ -370,7 +370,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CTest|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\win32\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
@@ -378,7 +378,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CTest|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\DiaLib\Include\;$(CPythonPath)\PCbuild\amd64\;$(CPythonPath)\Include\;$(DiaSdkDir)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Propsys.lib;diaguids.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>

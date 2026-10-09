@@ -74,7 +74,7 @@ public:
     auto end() const { return enumerateParameters().end(); }
 
 private:
-    friend std::wostream& ::operator<<(std::wostream & os, const dia::Function & func);
+    friend std::wostream& ::operator<<(std::wostream& os, const dia::Function& func);
 };
 }  // namespace dia
 

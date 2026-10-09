@@ -25,7 +25,7 @@ class DiaSymbolEnumerator final
 public:
     // Explicit NULL constructor
     explicit DiaSymbolEnumerator(nullptr_t)
-        : DiaSymbolEnumerator(){};
+        : DiaSymbolEnumerator() {};
 
     DiaSymbolEnumerator(const DiaSymbolEnumerator& other);
     DiaSymbolEnumerator operator=(const DiaSymbolEnumerator& other);

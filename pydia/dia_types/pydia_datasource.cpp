@@ -96,11 +96,12 @@ static int PyDiaDataSource_init(PyDiaDataSource* self, PyObject* args, PyObject*
     };
 
     int retVal = -1;
-    PYDIA_SAFE_TRY_EXCEPT({ retVal = unsafeInit(); },
-                          {
-                              PyErr_SetString(PyDiaError, e.what());
-                              return -1;
-                          });
+    PYDIA_SAFE_TRY_EXCEPT(
+        { retVal = unsafeInit(); },
+        {
+            PyErr_SetString(PyDiaError, e.what());
+            return -1;
+        });
     if (0 > retVal)
     {
         return retVal;

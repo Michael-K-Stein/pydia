@@ -557,8 +557,8 @@ protected:
     // Implicit conversion operators
 #define __DECLARE_AND_DEFINE_IMPLICIT_CAST_OPERATIONS(className)                                                                                     \
     operator className&() { return reinterpret_cast<className&>(*this); }                                                                            \
-    operator className&&()& { return reinterpret_cast<className&&>(static_cast<Symbol&&>(*this)); }                                                  \
-    operator className&&()&& { return reinterpret_cast<className&&>(*this); }
+    operator className&&() & { return reinterpret_cast<className&&>(static_cast<Symbol&&>(*this)); }                                                 \
+    operator className&&() && { return reinterpret_cast<className&&>(*this); }
     XFOR_DIA_SYMBOL_TYPE(__DECLARE_AND_DEFINE_IMPLICIT_CAST_OPERATIONS);
 
     __DECLARE_AND_DEFINE_IMPLICIT_CAST_OPERATIONS(UserDefinedType);

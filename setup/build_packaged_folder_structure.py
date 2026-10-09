@@ -1,52 +1,34 @@
-import sys
-import os
+"""Stage the built pydia.pyd into a directory that can be built into a wheel."""
+
+import argparse
 import shutil
+from pathlib import Path
 
 
-def create_init_file(dir_path: str):
-    with open(os.path.join(dir_path, "__init__.py"), "w") as f:
-        f.write("from .pydia import *\n")
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("pyd_file", type=Path)
+    parser.add_argument("out_root_dir", type=Path)
+    parser.add_argument("setup_root_dir", type=Path)
+    parser.add_argument("project_root_dir", type=Path)
+    args = parser.parse_args()
 
+    if args.pyd_file.suffix != ".pyd":
+        parser.error("File extension must be .pyd !")
 
-def main():
-    pyd_file_path = os.path.abspath(sys.argv[1])
-    out_root_dir = sys.argv[2]
-    setup_root_dir = os.path.abspath(sys.argv[3])
-    project_root_dir = os.path.abspath(sys.argv[4])
+    package_dir = (args.out_root_dir / "package").resolve()
+    extension_dir = package_dir / "pydia"
+    extension_dir.mkdir(parents=True, exist_ok=True)
 
-    assert os.path.splitext(pyd_file_path)[1] == ".pyd", "File extension must be .pyd !"
-
-    package_dir_path = os.path.abspath(os.path.join(out_root_dir, "package"))
-    package_extension_dir_path = os.path.abspath(
-        os.path.join(package_dir_path, "pydia")
+    (extension_dir / "__init__.py").write_text(
+        "from .pydia import *\n", encoding="utf-8"
     )
+    shutil.copy(args.pyd_file, extension_dir / "pydia.pyd")
 
-    os.makedirs(package_dir_path, exist_ok=True)
-    os.makedirs(package_extension_dir_path, exist_ok=True)
-
-    create_init_file(dir_path=package_extension_dir_path)
-
-    # Copy the binary to the output tree structure
-    shutil.copy(
-        pyd_file_path,
-        os.path.join(package_extension_dir_path, "pydia.pyd"),
-    )
-
-    # Copy setup.py from local setup dir to output package
-    shutil.copy(
-        os.path.join(setup_root_dir, "setup.py"),
-        os.path.join(package_dir_path, "setup.py"),
-    )
-
-    shutil.copy(
-        os.path.join(setup_root_dir, "MANIFEST.in"),
-        os.path.join(package_dir_path, "MANIFEST.in"),
-    )
-
-    shutil.copy(
-        os.path.join(project_root_dir, "README.md"),
-        os.path.join(package_dir_path, "README.md"),
-    )
+    for name in ("pyproject.toml", "setup.py"):
+        shutil.copy(args.setup_root_dir / name, package_dir / name)
+    for name in ("README.md", "LICENSE"):
+        shutil.copy(args.project_root_dir / name, package_dir / name)
 
 
 if __name__ == "__main__":

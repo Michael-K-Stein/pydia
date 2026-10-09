@@ -5,6 +5,7 @@ from common import (
     get_adhoc_test_file,
     get_ntdll_datasource,
 )
+
 import pydia
 from pydia import DataSource
 

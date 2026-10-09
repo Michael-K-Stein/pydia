@@ -7,18 +7,18 @@
 #include "dia_types/pydia_datasource.h"
 #include "pydia_exceptions.h"
 
-#define TRIVIAL_INIT_DEINIT_CUSTOM_FIELD(diaName, fieldName)                                                                                         \
-    static void PyDia##diaName##_dealloc(PyDia##diaName* self)                                                                                       \
-    {                                                                                                                                                \
-        if (self->dia##fieldName)                                                                                                                    \
-        {                                                                                                                                            \
-            delete self->dia##fieldName;                                                                                                             \
-        }                                                                                                                                            \
-        Py_TYPE(self)->tp_free((PyObject*)self);                                                                                                     \
-    }                                                                                                                                                \
-                                                                                                                                                     \
-    static int PyDia##diaName##_init(PyDia##diaName* self, PyObject* args, PyObject* kwds)                                                           \
-    {                                                                                                                                                \
+#define TRIVIAL_INIT_DEINIT_CUSTOM_FIELD(diaName, fieldName)                                                                                            \
+    static void PyDia##diaName##_dealloc(PyDia##diaName* self)                                                                                          \
+    {                                                                                                                                                   \
+        if (self->dia##fieldName)                                                                                                                       \
+        {                                                                                                                                               \
+            delete self->dia##fieldName;                                                                                                                \
+        }                                                                                                                                               \
+        Py_TYPE(self)->tp_free((PyObject*)self);                                                                                                        \
+    }                                                                                                                                                   \
+                                                                                                                                                        \
+    static int PyDia##diaName##_init(PyDia##diaName* self, PyObject* args, PyObject* kwds)                                                              \
+    {                                                                                                                                                   \
         const auto unsafeInit =                                                                                                                      \
             [&]() -> int { /* Check if the function was called with 0 or 2 arguments*/                                                               \
                            if (0 == PyTuple_Size(args))                                                                                              \
@@ -62,27 +62,28 @@
                                return -1;                                                                                                            \
                            }                                                                                                                         \
                            return 0;                                                                                                                 \
-        };                                                                                                                                           \
-                                                                                                                                                     \
-        int retVal = -1;                                                                                                                             \
-        PYDIA_SAFE_TRY_EXCEPT({ retVal = unsafeInit(); },                                                                                            \
-                              {                                                                                                                      \
-                                  PyErr_SetString(PyDiaError, e.what());                                                                             \
-                                  return -1;                                                                                                         \
-                              });                                                                                                                    \
-        if (0 > retVal)                                                                                                                              \
-        {                                                                                                                                            \
-            return retVal;                                                                                                                           \
-        }                                                                                                                                            \
-                                                                                                                                                     \
-        /* Check if allocation succeeded */                                                                                                          \
-        if (!self->dia##fieldName)                                                                                                                   \
-        {                                                                                                                                            \
-            PyErr_SetString(PyExc_MemoryError, "Failed to create " #diaName " object.");                                                             \
-            return -1;                                                                                                                               \
-        }                                                                                                                                            \
-                                                                                                                                                     \
-        return 0;                                                                                                                                    \
+        }; \
+                                                                                                                                                        \
+        int retVal = -1;                                                                                                                                \
+        PYDIA_SAFE_TRY_EXCEPT(                                                                                                                          \
+            { retVal = unsafeInit(); },                                                                                                                 \
+            {                                                                                                                                           \
+                PyErr_SetString(PyDiaError, e.what());                                                                                                  \
+                return -1;                                                                                                                              \
+            });                                                                                                                                         \
+        if (0 > retVal)                                                                                                                                 \
+        {                                                                                                                                               \
+            return retVal;                                                                                                                              \
+        }                                                                                                                                               \
+                                                                                                                                                        \
+        /* Check if allocation succeeded */                                                                                                             \
+        if (!self->dia##fieldName)                                                                                                                      \
+        {                                                                                                                                               \
+            PyErr_SetString(PyExc_MemoryError, "Failed to create " #diaName " object.");                                                                \
+            return -1;                                                                                                                                  \
+        }                                                                                                                                               \
+                                                                                                                                                        \
+        return 0;                                                                                                                                       \
     }
 
 #define TRIVIAL_INIT_DEINIT(diaName) TRIVIAL_INIT_DEINIT_CUSTOM_FIELD(diaName, diaName)
