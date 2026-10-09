@@ -5,6 +5,7 @@
 
 #include "DiaDataSource.h"
 #include "DiaUserDefinedTypeWrapper.h"
+#include "Exceptions.h"
 #include <set>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -72,6 +73,38 @@ public:
             Assert::AreNotEqual(0uLL, member.calcHash());
             Assert::AreEqual(member.calcHash(), member.calcHash());
         }
+    }
+
+    TEST_METHOD(GetExistingMember)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        const auto unicodeString = dataSource.getStruct(L"_UNICODE_STRING");
+        const auto member        = unicodeString.getMember(L"Length");
+        Assert::AreEqual(std::wstring{L"Length"}, std::wstring{member.getName()});
+        Assert::AreEqual(static_cast<LONG>(0), member.getOffset());
+    }
+
+    TEST_METHOD(GetNonexistentMemberThrowsSymbolNotFound)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        const auto unicodeString = dataSource.getStruct(L"_UNICODE_STRING");
+        Assert::ExpectException<dia::SymbolNotFoundException>([&] { unicodeString.getMember(L"__NonExistentMember_12345__"); });
+    }
+
+    TEST_METHOD(RangeBasedForIteration)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        const auto unicodeString = dataSource.getStruct(L"_UNICODE_STRING");
+        size_t memberCount       = 0;
+        for (const auto& member : unicodeString)
+        {
+            Assert::IsTrue(member.getName().length() > 0);
+            ++memberCount;
+        }
+        Assert::AreEqual(static_cast<size_t>(3), memberCount);
     }
 };
 }  // namespace Udt

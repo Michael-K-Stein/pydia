@@ -10,6 +10,9 @@ def get_test_resources_dir():
 
 
 def get_ntdll_datasource():
+    pdb_path = os.path.join(get_test_resources_dir(), "ntdll.pdb")
+    if os.path.exists(pdb_path):
+        return DataSource(pdb_path)
     return DataSource(os.path.join(get_test_resources_dir(), "ntdll.dll"))
 
 

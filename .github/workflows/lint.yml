@@ -1,10 +1,8 @@
 name: Lint
 
 on:
-  # master is linted by the Build workflow, which gates its builds on this one.
-  push:
-    branches-ignore: [master]
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   ruff:

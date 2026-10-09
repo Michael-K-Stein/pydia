@@ -4,6 +4,7 @@
 #include "CppUnitTest.h"
 
 #include "DiaDataSource.h"
+#include "Exceptions.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -37,6 +38,28 @@ public:
         Assert::AreEqual(dataSource.getLoadedPdbFile(), std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH).wstring());
     }
 
+    TEST_METHOD(SessionOpenedIsTrueAfterLoad)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        Assert::IsTrue(dataSource.sessionOpened());
+    }
+
+    TEST_METHOD(TwoArgConstructorWithSymstore)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath, L"C:\\Symbols"};
+        Assert::IsTrue(dataSource.sessionOpened());
+        Assert::AreEqual(dataSource.getLoadedPdbFile(), pdbFilePath);
+    }
+
+    TEST_METHOD(DoubleLoadThrowsInvalidUsage)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        Assert::ExpectException<dia::InvalidUsageException>([&] { dataSource.loadDataFromPdb(pdbFilePath); });
+    }
+
 #if 0
     // Not yet properly implemented
     TEST_METHOD(ExeLoadFindsPdbInStructuredSymstore)
@@ -48,5 +71,52 @@ public:
         Assert::AreEqual(dataSource.getLoadedPdbFile(), std::filesystem::absolute(STRUCTURED_FILE_TREE_NTDLL_PDB_FILE_PATH).wstring());
     }
 #endif
+};
+
+TEST_CLASS(Queries)
+{
+public:
+    TEST_METHOD(GetFunctionsEnumerator)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        auto functions = dataSource.getFunctions();
+        size_t count   = 0;
+        for (const auto& func : functions)
+        {
+            Assert::IsTrue(func.getName().length() > 0);
+            ++count;
+            if (count >= 10)
+            {
+                break;
+            }
+        }
+        Assert::IsTrue(count >= 10);
+    }
+
+    TEST_METHOD(GetNonexistentFunctionThrows)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        Assert::ExpectException<dia::SymbolNotFoundException>([&] { dataSource.getFunction(L"__NonExistentFunction_XYZ_987654__"); });
+    }
+
+    TEST_METHOD(GetUserDefinedTypesEnumerator)
+    {
+        const std::wstring pdbFilePath = std::filesystem::absolute(LOCAL_NTDLL_PDB_FILE_PATH);
+        dia::DataSource dataSource{pdbFilePath};
+        auto udts    = dataSource.getUserDefinedTypes();
+        size_t count = 0;
+        for (const auto& udt : udts)
+        {
+            Assert::IsTrue(udt.getName().length() > 0);
+            ++count;
+            if (count >= 10)
+            {
+                break;
+            }
+        }
+        Assert::IsTrue(count >= 10);
+    }
 };
 }  // namespace DataSource
