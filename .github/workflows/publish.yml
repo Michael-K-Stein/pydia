@@ -73,6 +73,10 @@ jobs:
       - name: Fetch test resources
         run: python .github/scripts/fetch_test_resources.py
 
+      - name: Build ad-hoc test resources
+        shell: pwsh
+        run: .github/scripts/build_adhoc_resources.ps1
+
       - name: Run PyTests
         shell: pwsh
         working-directory: PyTests
