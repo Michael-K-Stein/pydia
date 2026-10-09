@@ -2,6 +2,7 @@
 #include "BstrWrapper.h"
 #include "ComWrapper.h"
 #include "SymbolTypes/DiaSymbolTypes.h"
+#include "VariantWrapper.h"
 #include <atlbase.h>
 #include <dia2.h>
 #include <memory>
@@ -1176,7 +1177,7 @@ const BstrWrapper getSourceFileName(const Symbol& symbol);
 /// specified user-defined type is defined.
 /// @param symbol The symbol of which to get the source line on type definition.
 /// @return The source line on type definition.
-const IDiaLineNumber* getSrcLineOnTypeDefn(const Symbol& symbol);
+const LineNumber getSrcLineOnTypeDefn(const Symbol& symbol);
 
 /// @brief Retrieves the static size of the symbol.
 /// @param symbol The symbol of which to get the static size.
@@ -1374,7 +1375,7 @@ DWORD getUpperBoundId(const Symbol& symbol);
 /// @brief Retrieves the value.
 /// @param symbol The symbol to check.
 /// @return The value.
-const VARIANT getValue(const Symbol& symbol);
+const Variant getValue(const Symbol& symbol);
 
 /// @brief Retrieves a flag that specifies whether the function is virtual.
 /// @param symbol The symbol to check.
