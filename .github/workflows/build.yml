@@ -23,7 +23,8 @@ jobs:
       fail-fast: true
       max-parallel: 1
       matrix:
-        python: ["3.12", "3.13", "3.14", "3.15"]
+        # Pull requests only build 3.12; master pushes and manual runs build all.
+        python: ${{ fromJSON(github.event_name == 'pull_request' && '["3.12"]' || '["3.12","3.13","3.14","3.15"]') }}
     steps:
       - uses: actions/checkout@v7
 
@@ -41,10 +42,10 @@ jobs:
           "PYTHON_HOME=$base" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
       - name: Build pydia3.pyd
-        run: msbuild pydia.sln /m /p:Configuration=Release-3.12 /p:Platform=x64 /t:pydia
+        run: msbuild pydia.sln /m /p:Configuration=Release-Python /p:Platform=x64 /t:pydia
 
       - name: Build wheel
-        working-directory: x64/Release-3.12/package
+        working-directory: x64/Release-Python/package
         run: |
           python -m pip install build
           python -m build --wheel
@@ -53,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           python -m venv "$env:RUNNER_TEMP\smoke"
-          & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-3.12/package/dist/*.whl).FullName
+          & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-Python/package/dist/*.whl).FullName
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -I -c "import pydia3; print(pydia3.DataSource)"
 
       - name: Register the DIA SDK COM server
@@ -74,7 +75,17 @@ jobs:
       - name: Fetch test resources
         run: python .github/scripts/fetch_test_resources.py
 
+      # The ad-hoc resources don't depend on the Python version, so build them
+      # once and let the later matrix jobs restore them from the cache.
+      - name: Cache ad-hoc test resources
+        id: adhoc-cache
+        uses: actions/cache@v5
+        with:
+          path: CTests/Resources/AdHoc/out
+          key: adhoc-resources-${{ hashFiles('CTests/Resources/AdHoc/*.c', 'CTests/Resources/AdHoc/*.cpp', '.github/scripts/build_adhoc_resources.ps1') }}
+
       - name: Build ad-hoc test resources
+        if: steps.adhoc-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: .github/scripts/build_adhoc_resources.ps1
 
@@ -83,7 +94,7 @@ jobs:
         working-directory: PyTests
         run: |
           python -m pip install pytest
-          $env:PYTHONPATH = "$env:GITHUB_WORKSPACE\x64\Release-3.12\package"
+          $env:PYTHONPATH = "$env:GITHUB_WORKSPACE\x64\Release-Python\package"
           python -m pytest
 
       # DiaLib is independent of the Python version, so test it once.

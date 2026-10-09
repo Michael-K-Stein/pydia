@@ -43,10 +43,10 @@ jobs:
           if ($tag -ne $ver) { throw "Tag '$tag' does not match setup/pyproject.toml version '$ver'" }
 
       - name: Build pydia3.pyd
-        run: msbuild pydia.sln /m /p:Configuration=Release-3.12 /p:Platform=x64 /t:pydia
+        run: msbuild pydia.sln /m /p:Configuration=Release-Python /p:Platform=x64 /t:pydia
 
       - name: Build sdist and wheel
-        working-directory: x64/Release-3.12/package
+        working-directory: x64/Release-Python/package
         run: |
           python -m pip install build
           python -m build --wheel
@@ -55,7 +55,7 @@ jobs:
         shell: pwsh
         run: |
           python -m venv "$env:RUNNER_TEMP\smoke"
-          & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-3.12/package/dist/*.whl).FullName
+          & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-Python/package/dist/*.whl).FullName
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -I -c "import pydia3; print(pydia3.DataSource)"
 
       - name: Register the DIA SDK COM server
@@ -85,7 +85,7 @@ jobs:
         working-directory: PyTests
         run: |
           python -m pip install pytest
-          $env:PYTHONPATH = "$env:GITHUB_WORKSPACE\x64\Release-3.12\package"
+          $env:PYTHONPATH = "$env:GITHUB_WORKSPACE\x64\Release-Python\package"
           python -m pytest
 
       # DiaLib is independent of the Python version, so test it once.
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: dist-${{ matrix.python }}
-          path: x64/Release-3.12/package/dist/
+          path: x64/Release-Python/package/dist/
 
   publish:
     needs: build
