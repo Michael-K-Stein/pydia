@@ -1,13 +1,12 @@
 import argparse
 import os
-import sys
-from typing import Iterator, Iterable
+from typing import Iterable
 from collections import defaultdict, deque
 
 # Must be after!
 # sys.path.append(os.path.abspath(os.curdir))
 import pydia
-from pydia import DataSource, Struct, Union, Enum
+from pydia import DataSource
 
 INVALID_NAMES = ["__m64", "_iobuf", "__m128"]
 

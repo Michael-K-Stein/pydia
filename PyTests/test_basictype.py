@@ -1,9 +1,7 @@
 
-import os
-import pytest
-from common import get_ntdll_datasource, get_test_resources_dir
+from common import get_ntdll_datasource
 import pydia
-from pydia import DataSource, SymTag
+from pydia import SymTag
 
 
 def test_basic_type_enum():

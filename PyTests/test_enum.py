@@ -1,7 +1,4 @@
-import os
-import pytest
-from common import AdHocBinaryDataSource, get_ntdll_datasource, get_test_resources_dir
-from pydia import DataSource
+from common import AdHocBinaryDataSource, get_ntdll_datasource
 
 
 def test_find_enum():

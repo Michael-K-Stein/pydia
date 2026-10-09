@@ -4,7 +4,6 @@
 import os
 from pickletools import pyset
 import sys
-import pytest
 import pydia
 
 

@@ -1,5 +1,4 @@
-from setuptools import setup, find_packages
-import platform
+from setuptools import setup
 
 setup(
     name="pydia3",

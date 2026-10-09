@@ -26,7 +26,7 @@ def compile_resource(
     source_code: str, windows_headers: bool = False, output_type: str = "exe"
 ):
     with NamedTemporaryFile(
-        R"w+b", suffix=f"", delete_on_close=False, delete=False
+        R"w+b", suffix="", delete_on_close=False, delete=False
     ) as binary_file:
         binary_file.flush()
         binary_file.close()
