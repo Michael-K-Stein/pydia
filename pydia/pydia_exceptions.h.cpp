@@ -33,7 +33,6 @@ static PyObject* pydia_initializeBaseError(PyObject* module)
     {
         Py_XDECREF(PyDiaError);
         Py_CLEAR(PyDiaError);
-        Py_DECREF(module);
         return NULL;
     }
     return module;
@@ -54,7 +53,6 @@ static PyObject* pydia_initializeTrivialErrors(PyObject* module)
         {                                                                                                                                            \
             Py_XDECREF((PyDia##pureName##Error));                                                                                                    \
             Py_CLEAR((PyDia##pureName##Error));                                                                                                      \
-            Py_DECREF(module);                                                                                                                       \
             return NULL;                                                                                                                             \
         }                                                                                                                                            \
     } while (0)

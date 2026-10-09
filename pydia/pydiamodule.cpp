@@ -61,18 +61,26 @@ PyMODINIT_FUNC PyInit_pydia3(void)
         Py_RETURN_NONE;
     }
 
+    // Allow a later import attempt to retry if initialization fails midway
+    const auto fail = [&]() -> PyObject*
+    {
+        InterlockedExchange16(&passed, FALSE);
+        Py_XDECREF(module);  // The module's cleanup callback balances CoInitialize if it was called
+        return NULL;
+    };
+
     // Create the Python module
     module = PyModule_Create(&pydiamodule);
     if (NULL == module)
     {
-        return NULL;
+        return fail();
     }
 
     moduleState = pydia_getModuleState(module);
     if (NULL == moduleState)
     {
         PyErr_SetString(PyExc_RuntimeError, "Failed to allocate module state.");
-        return NULL;
+        return fail();
     }
 
     // Set the initialized state to false
@@ -84,26 +92,26 @@ PyMODINIT_FUNC PyInit_pydia3(void)
     {
         // Propagate HRESULT error to the Python caller
         PyErr_Format(PyExc_OSError, "Failed to initialize COM library! HRESULT: 0x%08lX", hresult);
-        return NULL;
+        return fail();
     }
+
+    // COM is initialized from here on, so the module cleanup must call CoUninitialize
+    moduleState->Initialized = TRUE;
 
     if (NULL == pydia_initializeErrors(module))
     {
-        return NULL;
+        return fail();
     }
 
     if (NULL == pydia_createDiaEnumWrappings(module))
     {
-        return NULL;
+        return fail();
     }
 
     if (NULL == pydia_registerClasses(module))
     {
-        return NULL;
+        return fail();
     }
-
-    // Mark the module as initialized
-    moduleState->Initialized = TRUE;
 
     return module;
 }

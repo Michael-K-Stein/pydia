@@ -21,11 +21,14 @@ static void PyDiaUdt_dealloc(PyDiaUdt* self)
     {
         delete self->diaUdt;
     }
+    Py_XDECREF(self->dataSource);
     Py_TYPE(((PyObject*)((self))))->tp_free((PyObject*)self);
 }
 
 static int PyDiaUdt_init(PyDiaUdt* self, PyObject* args, PyObject* kwds)
 {
+    // __init__ may be called more than once on the same object
+    delete self->diaUdt;
     self->diaUdt = new (std::nothrow) dia::UserDefinedType();
     if (!self->diaUdt)
     {

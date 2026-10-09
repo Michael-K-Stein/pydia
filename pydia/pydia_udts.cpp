@@ -139,90 +139,56 @@ PyObject* registerUdtPyClasses(PyObject* module)
     return module;
 }
 
-PyObject* PyDiaUdt_FromSymbol(dia::Symbol&& symbol, PyDiaDataSource* dataSource)
+// Wraps the symbol in a new Python object of the given UDT type, which owns the returned reference
+template <typename DiaUdtT>
+static PyObject* createUdtObject(PyTypeObject* pyType, dia::Symbol& symbol, PyDiaDataSource* dataSource)
 {
-    PyObject* pySymbol = NULL;
-    switch (symbol.getUdtKind())
+    auto pyUdt = PyObject_New(PyDiaUdt_Abstract, pyType);
+    if (!pyUdt)
     {
-    case UdtStruct:
-    {
-
-        auto pyStruct = PyObject_New(PyDiaStruct, &PyDiaStruct_Type);
-        if (!pyStruct)
-        {
-            PyErr_SetString(PyExc_MemoryError, "Failed to create DiaStruct object.");
-            return NULL;
-        }
-        pyStruct->diaUserDefinedType = new (std::nothrow) dia::Struct(static_cast<dia::Struct&>(symbol));
-        pySymbol                     = reinterpret_cast<PyObject*>(pyStruct);
-        break;
-    }
-    case UdtClass:
-    {
-
-        auto pyClass = PyObject_New(PyDiaClass, &PyDiaClass_Type);
-        if (!pyClass)
-        {
-            PyErr_SetString(PyExc_MemoryError, "Failed to create DiaClass object.");
-            return NULL;
-        }
-        pyClass->diaUserDefinedType = new (std::nothrow) dia::Class(static_cast<dia::Class&>(symbol));
-        pySymbol                    = reinterpret_cast<PyObject*>(pyClass);
-        break;
-    }
-    case UdtUnion:
-    {
-
-        auto pyUnion = PyObject_New(PyDiaUnion, &PyDiaUnion_Type);
-        if (!pyUnion)
-        {
-            PyErr_SetString(PyExc_MemoryError, "Failed to create DiaUnion object.");
-            return NULL;
-        }
-        pyUnion->diaUserDefinedType = new (std::nothrow) dia::Union(static_cast<dia::Union&>(symbol));
-        pySymbol                    = reinterpret_cast<PyObject*>(pyUnion);
-        break;
-    }
-    case UdtInterface:
-    {
-
-        auto pyInterface = PyObject_New(PyDiaInterface, &PyDiaInterface_Type);
-        if (!pyInterface)
-        {
-            PyErr_SetString(PyExc_MemoryError, "Failed to create DiaInterface object.");
-            return NULL;
-        }
-        pyInterface->diaUserDefinedType = new (std::nothrow) dia::Interface(static_cast<dia::Interface&>(symbol));
-        pySymbol                        = reinterpret_cast<PyObject*>(pyInterface);
-        break;
-    }
-    case UdtTaggedUnion:
-    {
-        auto pyTaggedUnion = PyObject_New(PyDiaTaggedUnion, &PyDiaTaggedUnion_Type);
-        if (!pyTaggedUnion)
-        {
-            PyErr_SetString(PyExc_MemoryError, "Failed to create DiaTaggedUnion object.");
-            return NULL;
-        }
-        pyTaggedUnion->diaUserDefinedType = new (std::nothrow) dia::TaggedUnion(static_cast<dia::TaggedUnion&>(symbol));
-        pySymbol                          = reinterpret_cast<PyObject*>(pyTaggedUnion);
-        break;
-    }
-    default:
-        Py_UNREACHABLE();
-        break;
+        PyErr_Format(PyExc_MemoryError, "Failed to create %s object.", pyType->tp_name);
+        return NULL;
     }
 
-    if (!pySymbol)
+    // PyObject_New does not initialize the members, and the deallocator inspects them
+    pyUdt->diaUserDefinedType = nullptr;
+    pyUdt->dataSource         = nullptr;
+
+    pyUdt->diaUserDefinedType = new (std::nothrow) DiaUdtT(static_cast<DiaUdtT&>(symbol));
+    if (!pyUdt->diaUserDefinedType)
     {
-        PyErr_SetString(PyExc_MemoryError, "Failed to create specific UDTs object.");
+        Py_DECREF(pyUdt);
+        PyErr_Format(PyExc_MemoryError, "Failed to create %s's internal state.", pyType->tp_name);
         return NULL;
     }
 
     Py_INCREF(dataSource);
-    reinterpret_cast<PyDiaUdt_Abstract*>(pySymbol)->dataSource = dataSource;
+    pyUdt->dataSource = dataSource;
 
-    return pySymbol;
+    return reinterpret_cast<PyObject*>(pyUdt);
+}
+
+PyObject* PyDiaUdt_FromSymbol(dia::Symbol&& symbol, PyDiaDataSource* dataSource)
+{
+    // Reading the UDT kind queries the underlying COM object, which may throw
+    enum UdtKind udtKind = UdtStruct;
+    PYDIA_SAFE_TRY({ udtKind = symbol.getUdtKind(); });
+
+    switch (udtKind)
+    {
+    case UdtStruct:
+        return createUdtObject<dia::Struct>(&PyDiaStruct_Type, symbol, dataSource);
+    case UdtClass:
+        return createUdtObject<dia::Class>(&PyDiaClass_Type, symbol, dataSource);
+    case UdtUnion:
+        return createUdtObject<dia::Union>(&PyDiaUnion_Type, symbol, dataSource);
+    case UdtInterface:
+        return createUdtObject<dia::Interface>(&PyDiaInterface_Type, symbol, dataSource);
+    case UdtTaggedUnion:
+        return createUdtObject<dia::TaggedUnion>(&PyDiaTaggedUnion_Type, symbol, dataSource);
+    default:
+        return PyErr_Format(PyExc_ValueError, "Unrecognized UdtKind \"%d\".", static_cast<int>(udtKind));
+    }
 }
 
 PyObject* PyDiaUserDefinedType_FromUserDefinedTypeSymbol(dia::UserDefinedType&& symbol, PyDiaDataSource* dataSource)

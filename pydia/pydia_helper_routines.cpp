@@ -38,14 +38,15 @@ AnyString PyObjectToAnyString(PyObject* obj)
             return {};
         }
 
-        wchar_t* widePath = (wchar_t*)PyMem_Malloc(len * sizeof(wchar_t));
-        if (!widePath)
+        // The converted length includes the terminating null character, which std::wstring tracks on its own
+        std::wstring widePath(len, L'\0');
+        int len2 = MultiByteToWideChar(CP_UTF8, 0, bytesString, -1, widePath.data(), len);
+        if (len2 <= 0)
         {
-            PyErr_SetString(PyExc_MemoryError, "Failed to allocate memory for wide character conversion.");
+            PyErr_SetString(PyExc_ValueError, "Failed to convert bytes to wide character.");
             return {};
         }
-        int len2 = MultiByteToWideChar(CP_UTF8, 0, bytesString, -1, widePath, len);
-        _ASSERT(len == len2);
+        widePath.resize(len2 - 1);
         return AnyString{widePath};
     }
 
@@ -124,6 +125,16 @@ PyObject* PyObject_FromVariant(const VARIANT& variantValue)
 
     case VT_DATE:  // DATE (COM date type)
     {
+        // The datetime C API must be imported before it is used
+        if (!PyDateTimeAPI)
+        {
+            PyDateTime_IMPORT;
+            if (!PyDateTimeAPI)
+            {
+                return NULL;
+            }
+        }
+
         // Convert DATE (OLE Automation date) to Python datetime
         SYSTEMTIME sysTime;
         if (VariantTimeToSystemTime(variantValue.date, &sysTime))

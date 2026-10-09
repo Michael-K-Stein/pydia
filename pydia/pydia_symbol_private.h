@@ -722,7 +722,7 @@ PyObject* PyDiaSymbol_getUndecoratedName(const PyDiaSymbol* self);
 static PyMethodDef PyDiaSymbolMethodEntry_getUndecoratedName = {"get_undecorated_name", (PyCFunction)PyDiaSymbol_getUndecoratedName, METH_NOARGS,
                                                                 "Get the undecorated name of the symbol."};
 
-PyObject* PyDiaSymbol_getUndecoratedNameEx(const PyDiaSymbol* self, DWORD options);
+PyObject* PyDiaSymbol_getUndecoratedNameEx(const PyDiaSymbol* self, PyObject* args);
 static PyMethodDef PyDiaSymbolMethodEntry_getUndecoratedNameEx = {"get_undecorated_name_ex", (PyCFunction)PyDiaSymbol_getUndecoratedNameEx,
                                                                   METH_VARARGS, "Get the undecorated name of the symbol with options."};
 
