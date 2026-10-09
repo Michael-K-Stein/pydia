@@ -328,14 +328,15 @@ std::wstring resolveCppCallingConventionAttribute(const CvCall v)
 
 std::string convertGuidToString(const GUID& guid)
 {
-    char rawGuidString[34];
-    if (34 != snprintf(rawGuidString, sizeof(rawGuidString), "%.8lX-%.2hX-%.2hX-%.2hhX%.2hhX%.2hhX%.2hhX%.2hhX%.2hhX%.2hhX%.2hhX", guid.Data1,
+    // Canonical 8-4-4-4-12 form, 36 characters plus the null terminator.
+    char rawGuidString[37];
+    if (36 != snprintf(rawGuidString, sizeof(rawGuidString), "%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", guid.Data1,
                        guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5],
                        guid.Data4[6], guid.Data4[7]))
     {
-        throw std::runtime_error("GUID must be 34 ASCII characters long!");
+        throw std::runtime_error("GUID must be 36 ASCII characters long!");
     }
-    return std::string{rawGuidString, 34};
+    return std::string{rawGuidString, 36};
 }
 
 static std::wstring resolveFunctionTypeName(const FunctionType& funcTypeSymbol, bool withCallingConvention)

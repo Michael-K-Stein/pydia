@@ -9,6 +9,14 @@
 
 namespace dia
 {
+/// @brief Wrap a COM pointer returned by a `get_*` call. Those calls hand over a reference we own, so it must be attached, not AddRef'd again.
+static Symbol attachSymbol(IDiaSymbol* rawSymbol)
+{
+    Symbol symbol{};
+    symbol.makeFromRaw().Attach(rawSymbol);
+    return symbol;
+}
+
 AccessModifier getAccess(const Symbol& symbol)
 {
     DWORD retVal      = 0;
@@ -54,7 +62,7 @@ const Symbol getArrayIndexType(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_arrayIndexType(&retVal);
     CHECK_DIACOM_EXCEPTION("get_arrayIndexTypeId failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 ULONG getArrayIndexTypeId(const Symbol& symbol)
@@ -70,7 +78,7 @@ const Symbol getBaseSymbol(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_baseSymbol(&retVal);
     CHECK_DIACOM_EXCEPTION("get_baseSymbol failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 ULONG getBaseSymbolId(const Symbol& symbol)
@@ -134,7 +142,7 @@ const Symbol getClassParent(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_classParent(&retVal);
     CHECK_DIACOM_EXCEPTION("get_classParent failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 bool getCode(const Symbol& symbol)
@@ -150,7 +158,7 @@ const Symbol getCoffGroup(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_coffGroup(&retVal);
     CHECK_DIACOM_EXCEPTION("get_coffGroup failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 bool getCompilerGenerated(const Symbol& symbol)
@@ -302,7 +310,7 @@ const Symbol getLexicalParent(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_lexicalParent(&retVal);
     CHECK_DIACOM_EXCEPTION("get_lexicalParent failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 enum LocationType getLocationType(const Symbol& symbol)
@@ -318,7 +326,7 @@ const Symbol getLowerBound(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_lowerBound(&retVal);
     CHECK_DIACOM_EXCEPTION("get_lowerBound failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 ULONG getLowerBoundId(const Symbol& symbol)
@@ -350,7 +358,7 @@ const BstrWrapper getName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_name(&retVal);
     CHECK_DIACOM_EXCEPTION("get_name failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 bool getNoNameExport(const Symbol& symbol)
@@ -406,7 +414,7 @@ const BstrWrapper getPhaseName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_phaseName(&retVal);
     CHECK_DIACOM_EXCEPTION("get_phaseName failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 bool getPrivateExport(const Symbol& symbol)
@@ -479,7 +487,7 @@ const Symbol getType(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_type(&retVal);
     CHECK_DIACOM_EXCEPTION("get_type failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 ULONG getTypeId(const Symbol& symbol)
@@ -495,7 +503,7 @@ const BstrWrapper getUndecoratedName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_undecoratedName(&retVal);
     CHECK_DIACOM_EXCEPTION("get_undecoratedName failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 const Symbol getUpperBound(const Symbol& symbol)
@@ -503,7 +511,7 @@ const Symbol getUpperBound(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_upperBound(&retVal);
     CHECK_DIACOM_EXCEPTION("get_upperBound failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 ULONG getUpperBoundId(const Symbol& symbol)
@@ -535,7 +543,7 @@ const Symbol getVirtualTableShape(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_virtualTableShape(&retVal);
     CHECK_DIACOM_EXCEPTION("get_virtualTableShapeId failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 ULONG getVirtualTableShapeId(const Symbol& symbol)
@@ -647,7 +655,7 @@ const BstrWrapper getCompilerName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_compilerName(&retVal);
     CHECK_DIACOM_EXCEPTION("get_compilerName failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 bool getConstType(const Symbol& symbol)
@@ -671,7 +679,7 @@ const Symbol getContainer(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_container(&retVal);
     CHECK_DIACOM_EXCEPTION("get_container failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 ULONG getCount(const Symbol& symbol)
@@ -1236,7 +1244,7 @@ const BstrWrapper getLibraryName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_libraryName(&retVal);
     CHECK_DIACOM_EXCEPTION("get_libraryName failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 ULONGLONG getLiveRangeLength(const Symbol& symbol)
@@ -1404,7 +1412,7 @@ const Symbol getNumericProperties(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result = symbol.get()->get_numericProperties(&retVal);
     CHECK_DIACOM_EXCEPTION("get_numericProperties failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 #endif
 
@@ -1413,7 +1421,7 @@ const BstrWrapper getObjectFileName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_objectFileName(&retVal);
     CHECK_DIACOM_EXCEPTION("get_objectFileName failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 const Symbol getObjectPointerType(const Symbol& symbol)
@@ -1421,7 +1429,7 @@ const Symbol getObjectPointerType(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_objectPointerType(&retVal);
     CHECK_DIACOM_EXCEPTION("get_objectPointerType failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 DWORD getOemId(const Symbol& symbol)
@@ -1565,7 +1573,7 @@ const BstrWrapper getSourceFileName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_sourceFileName(&retVal);
     CHECK_DIACOM_EXCEPTION("get_sourceFileName failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 bool getStrictGSCheck(const Symbol& symbol)
@@ -1589,7 +1597,7 @@ const Symbol getSubType(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_subType(&retVal);
     CHECK_DIACOM_EXCEPTION("get_subType failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 DWORD getSubTypeId(const Symbol& symbol)
@@ -1605,7 +1613,7 @@ const BstrWrapper getSymbolsFileName(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_symbolsFileName(&retVal);
     CHECK_DIACOM_EXCEPTION("get_symbolsFileName failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 DWORD getTargetOffset(const Symbol& symbol)
@@ -1686,7 +1694,7 @@ const Symbol getTypeIds(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result = symbol.get()->get_typeIds(&retVal);
     CHECK_DIACOM_EXCEPTION("get_typeIds failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 #endif
 
@@ -1696,7 +1704,7 @@ const Symbol getTypes(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result = symbol.get()->get_types(&retVal);
     CHECK_DIACOM_EXCEPTION("get_types failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 #endif
 
@@ -1729,7 +1737,7 @@ const BstrWrapper getUndecoratedNameEx(const Symbol& symbol, DWORD options)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_undecoratedNameEx(options, &retVal);
     CHECK_DIACOM_EXCEPTION("get_undecoratedNameEx failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 const Symbol getUnmodifiedType(const Symbol& symbol)
@@ -1737,7 +1745,7 @@ const Symbol getUnmodifiedType(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_unmodifiedType(&retVal);
     CHECK_DIACOM_EXCEPTION("get_unmodifiedType failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 DWORD getUnmodifiedTypeId(const Symbol& symbol)
@@ -1753,7 +1761,7 @@ const BstrWrapper getUnused(const Symbol& symbol)
     BSTR retVal       = nullptr;
     const auto result = symbol.get()->get_unused(&retVal);
     CHECK_DIACOM_EXCEPTION("get_unused failed!", result);
-    return retVal;
+    return BstrWrapper{std::move(retVal)};
 }
 
 const VARIANT getValue(const Symbol& symbol)
@@ -1802,7 +1810,7 @@ const Symbol getVirtualBaseTableType(const Symbol& symbol)
     IDiaSymbol* retVal = nullptr;
     const auto result  = symbol.get()->get_virtualBaseTableType(&retVal);
     CHECK_DIACOM_EXCEPTION("get_virtualBaseTableType failed!", result);
-    return Symbol{retVal};
+    return attachSymbol(retVal);
 }
 
 bool getVolatileType(const Symbol& symbol)

@@ -53,6 +53,12 @@ size_t hash<VARIANT>::operator()(const VARIANT& v) const
     case VT_UI1:  // BYTE
         hash_combine(calculatedHash, variantValue.bVal);
         break;
+    case VT_I1:  // CHAR
+        hash_combine(calculatedHash, variantValue.cVal);
+        break;
+    case VT_UI2:  // USHORT
+        hash_combine(calculatedHash, variantValue.uiVal);
+        break;
     case VT_R4:  // FLOAT
         hash_combine(calculatedHash, static_cast<double>(variantValue.fltVal));
         break;

@@ -22,10 +22,14 @@ static std::wstring getEnvironmentVariableW(const std::wstring& variableName)
     // Initialize wstring of requiredBufferSize characters, all nullified
     std::wstring environmentVariableValue(requiredBufferSize, L'\x00');
 
-    if (0 == GetEnvironmentVariableW(variableName.c_str(), const_cast<wchar_t*>(environmentVariableValue.data()), requiredBufferSize))
+    // On success the return value is the length *excluding* the null terminator.
+    const auto copiedLength =
+        GetEnvironmentVariableW(variableName.c_str(), const_cast<wchar_t*>(environmentVariableValue.data()), requiredBufferSize);
+    if (0 == copiedLength || copiedLength >= requiredBufferSize)
     {
         throw WinApiException("Failed to get value of environment variable!");
     }
+    environmentVariableValue.resize(copiedLength);
     return environmentVariableValue;
 }
 

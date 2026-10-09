@@ -188,5 +188,6 @@ template <>
 template <size_t N>
 inline AnyStringT<wchar_t>::AnyStringT(const char (&string)[N])
 {
-    m_string = convertToWstring(std::string(string, N));
+    // N includes the terminating null character, which must not become part of the string.
+    m_string = convertToWstring(std::string(string));
 }

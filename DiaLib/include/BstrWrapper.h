@@ -11,9 +11,9 @@ public:
     BstrWrapper() = default;
 
     BstrWrapper(const BstrWrapper& other);
-    BstrWrapper operator=(const BstrWrapper& other);
+    BstrWrapper& operator=(const BstrWrapper& other);
     BstrWrapper(BstrWrapper&& other) noexcept;
-    BstrWrapper operator=(BstrWrapper&& other) noexcept;
+    BstrWrapper& operator=(BstrWrapper&& other) noexcept;
 
     BstrWrapper(const BSTR& data);
     BstrWrapper(BSTR&& data);
@@ -49,8 +49,8 @@ std::wostream& operator<<(std::wostream& os, const BstrWrapper& bstr);
 template <size_t N>
 inline std::wstring BstrWrapper::operator+(const wchar_t (&s)[N]) const
 {
-    const auto source = std::wstring{s, N};
-    return source + *this;
+    // N includes the terminating null character, which must not become part of the string.
+    return std::wstring{*this} + std::wstring{s, N - 1};
 }
 
 namespace std
