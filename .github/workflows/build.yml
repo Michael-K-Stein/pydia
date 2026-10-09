@@ -23,7 +23,8 @@ jobs:
       fail-fast: true
       max-parallel: 1
       matrix:
-        python: ["3.12", "3.13", "3.14", "3.15"]
+        # Pull requests only build 3.12; master pushes and manual runs build all.
+        python: ${{ fromJSON(github.event_name == 'pull_request' && '["3.12"]' || '["3.12","3.13","3.14","3.15"]') }}
     steps:
       - uses: actions/checkout@v7
 
