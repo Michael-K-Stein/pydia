@@ -23,11 +23,10 @@ template <typename K, typename T>
 static inline void PyDiaSymbolGenerator_dealloc(PyDiaAbstractGenerator<K, T>* self)
 {
     _ASSERT(NULL != self);
-    _ASSERT(NULL != self->enumerator);
-    if (self->enumerator)
-    {
-        delete self->enumerator;
-    }
+    // Any of the members may be NULL if the creation of the generator failed midway
+    delete self->iterator;
+    delete self->enumerator;
+    Py_XDECREF(self->parent);
     _ASSERT(NULL != Py_TYPE(self)->tp_free);
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -52,7 +51,7 @@ static inline PyObject* PyDiaSymbolGenerator_iter(PyDiaAbstractGenerator<K, T>* 
         return NULL;
     }
 
-    Py_INCREF(self);         // Increment reference count for generator object
+    Py_INCREF(self);         // tp_iter returns a new reference to the iterator, which is the generator itself
     return (PyObject*)self;  // Return self as an iterator
 }
 
@@ -140,6 +139,7 @@ PyDiaAbstractGenerator<K, T>* PyDiaSymbolGenerator_create(const K* parent, dia::
         return NULL;
     }
 
+    // tp_alloc zero-initializes the members, so the deallocator can safely release a partially created generator
     Py_INCREF(parent);
     self->parent = parent;
     _ASSERT_EXPR(nullptr != self->parent->dataSource, L"Parent's data source must be initialized!");
@@ -147,14 +147,14 @@ PyDiaAbstractGenerator<K, T>* PyDiaSymbolGenerator_create(const K* parent, dia::
     self->enumerator = new (std::nothrow) dia::DiaSymbolEnumerator<T>(std::move(enumerator));
     if (!self->enumerator)
     {
-        Py_DECREF(parent);
+        Py_DECREF(self);
         PyErr_SetString(PyExc_MemoryError, "Failed to allocate SymbolGenerator object's internal enumerator.");
         return NULL;
     }
     self->iterator = new (std::nothrow) dia::DiaSymbolEnumerator<T>::Iterator();
     if (!self->iterator)
     {
-        Py_DECREF(parent);
+        Py_DECREF(self);
         PyErr_SetString(PyExc_MemoryError, "Failed to allocate SymbolGenerator object's internal iterator.");
         return NULL;
     }
@@ -162,7 +162,7 @@ PyDiaAbstractGenerator<K, T>* PyDiaSymbolGenerator_create(const K* parent, dia::
     // TODO: This looks super fishy
     *self->iterator = std::move(self->enumerator->begin());
 
-    Py_INCREF(self);
+    // tp_alloc already returned a new reference
     return self;
 }
 

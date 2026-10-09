@@ -38,9 +38,14 @@ static PyObject* PyDiaRawSymbol_FromSymbol(dia::Symbol&& symbol, PyDiaDataSource
         return NULL;
     }
 
-    pySymbol->diaSymbol = new (std::nothrow) dia::Symbol(symbol);
+    // PyObject_New does not initialize the members, and the deallocator inspects them
+    pySymbol->diaSymbol  = nullptr;
+    pySymbol->dataSource = nullptr;
+
+    pySymbol->diaSymbol  = new (std::nothrow) dia::Symbol(symbol);
     if (!(pySymbol->diaSymbol))
     {
+        Py_DECREF(pySymbol);
         PyErr_SetString(PyExc_MemoryError, "Failed to create DiaSymbol's internal state.");
         return NULL;
     }
@@ -48,7 +53,7 @@ static PyObject* PyDiaRawSymbol_FromSymbol(dia::Symbol&& symbol, PyDiaDataSource
     Py_INCREF(dataSource);
     pySymbol->dataSource = dataSource;
 
-    Py_INCREF(pySymbol);
+    // PyObject_New already returned a new reference
     return reinterpret_cast<PyObject*>(pySymbol);
 }
 
@@ -57,7 +62,9 @@ PyObject* PyDiaSymbol_FromSymbol(dia::Symbol&& symbol, PyDiaDataSource* dataSour
     // Create a new PyDiaData object
     _ASSERT_EXPR(nullptr != dataSource, L"Cannot initialize a PyDiaSymbol without a dataSource!");
 
-    const auto symTag  = symbol.getSymTag();
+    // Reading the tag queries the underlying COM object, which may throw
+    enum SymTagEnum symTag = SymTagNull;
+    PYDIA_SAFE_TRY({ symTag = symbol.getSymTag(); });
 
     PyObject* pySymbol = NULL;
     switch (symTag)
@@ -118,11 +125,15 @@ PyObject* PyDiaSymbol_FromSymbol(dia::Symbol&& symbol, PyDiaDataSource* dataSour
 
     if (!pySymbol)
     {
-        PyErr_SetString(PyExc_MemoryError, "Failed to create symbol object.");
+        // The specific conversions set their own exception, which should not be masked
+        if (!PyErr_Occurred())
+        {
+            PyErr_SetString(PyExc_MemoryError, "Failed to create symbol object.");
+        }
         return NULL;
     }
 
-    Py_INCREF(pySymbol);
+    // The conversions above already returned a new reference
     return pySymbol;
 }
 
@@ -186,9 +197,17 @@ PyObject* PyDiaSymbol_repr(const PyDiaSymbol* self)
         const std::wstring dataSource = self->dataSource->diaDataSource->getLoadedPdbFile();
         const auto hash               = self->diaSymbol->calcHash();
 
-        return PyUnicode_FromFormat("%T(R'%U', 0x%.16llX)", self, PyObject_FromWstring(dataSource), hash);
+        PyObject* pyDataSource        = PyObject_FromWstring(dataSource);
+        if (!pyDataSource)
+        {
+            return NULL;
+        }
+        PyObject* pyRepr = PyUnicode_FromFormat("%T(R'%U', 0x%.16llX)", self, pyDataSource, hash);
+        Py_DECREF(pyDataSource);
+        return pyRepr;
     };
     PYDIA_SAFE_TRY({ return safeExecution(); });
+    Py_UNREACHABLE();
 }
 
 Py_hash_t PyDiaSymbol_hash(PyObject* self)
@@ -196,8 +215,18 @@ Py_hash_t PyDiaSymbol_hash(PyObject* self)
     _ASSERT_EXPR(nullptr != self, L"Self must not be null when hashing!");
     dia::Symbol* selfSymbol = reinterpret_cast<PyDiaSymbol*>(self)->diaSymbol;
     _ASSERT_EXPR(nullptr != selfSymbol, L"Self->diaSymbol must not be null when hashing!");
-    PYDIA_SAFE_TRY_EXCEPT({ return static_cast<Py_hash_t>(selfSymbol->calcHash()); }, { Py_UNREACHABLE(); });
-    Py_UNREACHABLE();
+    // Failing the hash must raise in Python: -1 is the error value of tp_hash
+    PYDIA_SAFE_TRY_EXCEPT(
+        {
+            const auto hash = static_cast<Py_hash_t>(selfSymbol->calcHash());
+            // -1 is reserved for errors, Python itself maps it to -2
+            return (-1 == hash) ? -2 : hash;
+        },
+        {
+            PyErr_SetString(PyDiaError, e.what());
+            return -1;
+        });
+    return -1;
 }
 
 static void PyDiaSymbol_dealloc(PyDiaSymbol* self)
@@ -221,6 +250,8 @@ static void PyDiaSymbol_dealloc(PyDiaSymbol* self)
 
 static int PyDiaSymbol_init(PyDiaSymbol* self, PyObject* args, PyObject* kwds)
 {
+    // __init__ may be called more than once on the same object
+    delete self->diaSymbol;
     self->diaSymbol = new (std::nothrow) dia::Symbol();
     if (!self->diaSymbol)
     {
@@ -1914,11 +1945,20 @@ PyObject* PyDiaSymbol_getModifierValues(const PyDiaSymbol* self)
     PYDIA_SAFE_TRY({
         const std::set<dia::StorageModifier> modifierValues = self->diaSymbol->getModifierValues();
         PyObject* pyList                                    = PyTuple_New(modifierValues.size());
-        Py_ssize_t index                                    = 0;
+        if (!pyList)
+        {
+            return NULL;
+        }
+        Py_ssize_t index = 0;
         for (const auto& modifier : modifierValues)
         {
             PyObject* pyValue = PyDiaStorageModifier_FromStorageModifier(modifier);
-            PyTuple_SetItem(pyList, index, pyValue);
+            if (!pyValue)
+            {
+                Py_DECREF(pyList);
+                return NULL;
+            }
+            PyTuple_SetItem(pyList, index, pyValue);  // Steals the reference to pyValue
             ++index;
         }
         return pyList;
@@ -2751,9 +2791,17 @@ PyObject* PyDiaSymbol_getUndecoratedName(const PyDiaSymbol* self)
 }
 
 // Method: PyDiaSymbol_getUndecoratedNameEx
-PyObject* PyDiaSymbol_getUndecoratedNameEx(const PyDiaSymbol* self, DWORD options)
+PyObject* PyDiaSymbol_getUndecoratedNameEx(const PyDiaSymbol* self, PyObject* args)
 {
     PYDIA_ASSERT_SYMBOL_POINTERS(self);
+
+    // The method is registered as METH_VARARGS, so the options arrive in the arguments tuple
+    unsigned long options = 0;
+    if (!PyArg_ParseTuple(args, "k", &options))
+    {
+        return NULL;
+    }
+
     PYDIA_SAFE_TRY({
         const BstrWrapper undecoratedNameEx = self->diaSymbol->getUndecoratedNameEx(options);
         return PyObject_FromBstrWrapper(undecoratedNameEx);
