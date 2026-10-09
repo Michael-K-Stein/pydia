@@ -85,7 +85,7 @@ static inline PyObject* PyDiaSymbolGenerator_iternext(PyDiaAbstractGenerator<K, 
 
 template <typename K, typename T>
 PyTypeObject PyDiaAbstractGenerator_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "pydia.SymbolAbstractGenerator",   /* tp_name */
+    PyVarObject_HEAD_INIT(NULL, 0) "pydia3.SymbolAbstractGenerator",  /* tp_name */
     sizeof(PyDiaAbstractGenerator<T, K>),                             /* tp_basicsize */
     0,                                                                /* tp_itemsize */
     (destructor)PyDiaSymbolGenerator_dealloc<T, K>,                   /* tp_dealloc */

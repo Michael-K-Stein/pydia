@@ -4,7 +4,6 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>daa11dd6-4e8a-410d-b917-5a352a5e976f</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>PyTests.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -31,7 +30,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="common.py" />
-    <Compile Include="PyTests.py" />
     <Compile Include="test_basictype.py">
       <SubType>Code</SubType>
     </Compile>

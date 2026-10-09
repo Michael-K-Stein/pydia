@@ -1,3 +1,4 @@
+import pydia3
 import pytest
 from common import (
     AdHocBinaryDataSource,
@@ -5,9 +6,7 @@ from common import (
     get_adhoc_test_file,
     get_ntdll_datasource,
 )
-
-import pydia
-from pydia import DataSource
+from pydia3 import DataSource
 
 
 def test_find_struct():
@@ -45,11 +44,11 @@ def test_check_simple_struct_member_attributes():
     for i, member in enumerate(struct.enumerate_members()):
         assert member
         assert member.get_name() == struct_member_names[i]
-        assert member.get_access() == pydia.AccessModifier.Public
+        assert member.get_access() == pydia3.AccessModifier.Public
         assert member.is_const() == False
         assert member.is_volatile() == False
-        assert member.get_data_kind() == pydia.DataKind.Member
-        assert member.get_location_type() == pydia.LocationType.ThisRel
+        assert member.get_data_kind() == pydia3.DataKind.Member
+        assert member.get_location_type() == pydia3.LocationType.ThisRel
 
 
 def test_check_volatile_struct_member_attributes():
@@ -77,7 +76,7 @@ int main() { MyVolatileStruct a = {}; a.Member1 = 'q'; return a.Member1; }
         for member in struct.enumerate_members():
             assert member
             assert member.is_volatile() == False
-            if isinstance(member.get_type(), pydia.Array):
+            if isinstance(member.get_type(), pydia3.Array):
                 assert member.get_type().get_type().is_volatile() == True
             else:
                 assert member.get_type().is_volatile() == True

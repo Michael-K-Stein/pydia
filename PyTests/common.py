@@ -1,9 +1,8 @@
 import os
 from tempfile import NamedTemporaryFile
 
+from pydia3 import DataSource
 from utils.resource_utils import build_resource
-
-from pydia import DataSource
 
 
 def get_test_resources_dir():

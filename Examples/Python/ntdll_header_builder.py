@@ -5,8 +5,8 @@ from collections.abc import Iterable
 
 # Must be after!
 # sys.path.append(os.path.abspath(os.curdir))
-import pydia
-from pydia import DataSource
+import pydia3
+from pydia3 import DataSource
 
 INVALID_NAMES = ["__m64", "_iobuf", "__m128"]
 
@@ -89,7 +89,7 @@ def detect_and_print_cycle(objects, dependencies):
     return False
 
 
-def enum_values_to_dict(enum_values: Iterable[pydia.Data]):
+def enum_values_to_dict(enum_values: Iterable[pydia3.Data]):
     values: dict[str, int] = {}
     for entry in enum_values:
         values[entry.get_name()] = entry.get_value()
@@ -160,27 +160,27 @@ enum {self.name} : uint{self.size * 8}_t {{
 
 class DataData:
     name: str
-    data: pydia.Data
+    data: pydia3.Data
 
     def __init__(self, data):
         self.data = data
         self.name = self.data.get_name()
 
     @staticmethod
-    def safe_type_name_resolution(type: pydia.Symbol):
-        type_name = pydia.resolve_type_name(type)
+    def safe_type_name_resolution(type: pydia3.Symbol):
+        type_name = pydia3.resolve_type_name(type)
         if type_name[0 : len("<unnamed-")] != "<unnamed-":
             return type_name
 
         # This is an unnamed enum/union/struct/...
-        if type.get_sym_tag() == pydia.SymTag.Enum:
+        if type.get_sym_tag() == pydia3.SymTag.Enum:
             values = enum_values_to_dict(type.get_values())
             return f"""
 enum {{
 \t{"\n\t".join(list(str(f"{x} = {values[x]},") for x in values))}
 }}
 """.strip()
-        elif type.get_sym_tag() == pydia.SymTag.UDT:
+        elif type.get_sym_tag() == pydia3.SymTag.UDT:
             unnamed_tag_udt_data = UdtData(type)
             return f"""{unnamed_tag_udt_data.modifiers()}{unnamed_tag_udt_data.kind_name} {{\n\t{unnamed_tag_udt_data.members()}\n\t}}"""
         else:
@@ -188,27 +188,29 @@ enum {{
 
     def __str__(self):
         type = self.data.get_type()
-        # if type.get_sym_tag() == pydia.SymTag.ArrayType:
+        # if type.get_sym_tag() == pydia3.SymTag.ArrayType:
         #     element_type = type.get_type()
         #     element_count = type.get_count()
         #     return f"""{DataData.safe_type_name_resolution(element_type)} {self.name}[{element_count}];"""
-        if self.data.get_location_type() == pydia.LocationType.BitField:
+        if self.data.get_location_type() == pydia3.LocationType.BitField:
             return f"""/* {hex(self.data.get_offset())[2:].zfill(2)}:{self.data.get_bit_position()} */ {DataData.safe_type_name_resolution(type)} {self.name} : {self.data.get_length()};"""
         return f"""/* {hex(self.data.get_offset())[2:].zfill(2)} */ {DataData.safe_type_name_resolution(type)} {self.name};"""
 
 
 class UdtData:
     name: str
-    data: pydia.Udt
-    kind: pydia.UdtKind
+    data: pydia3.Udt
+    kind: pydia3.UdtKind
     kind_name: str
 
-    def __init__(self, data: pydia.Udt):
+    def __init__(self, data: pydia3.Udt):
         self.data = data
         self.name = self.data.get_name()
         self.kind = self.data.get_udt_kind()
-        assert (self.kind is pydia.UdtKind.Struct) or (self.kind is pydia.UdtKind.Union)
-        self.kind_name = "struct" if (self.kind is pydia.UdtKind.Struct) else "union"
+        assert (self.kind is pydia3.UdtKind.Struct) or (
+            self.kind is pydia3.UdtKind.Union
+        )
+        self.kind_name = "struct" if (self.kind is pydia3.UdtKind.Struct) else "union"
 
     def typedefs(self):
         if self.name == "<unnamed-tag>":
@@ -280,7 +282,7 @@ def build_enum_header(data_sources: list[DataSource]):
     all_enums: dict[str, EnumData] = {}
     for data_source in data_sources:
         new_enums: dict[str, EnumData] = {}
-        for enum in data_source.get_symbols(pydia.SymTag.Enum):
+        for enum in data_source.get_symbols(pydia3.SymTag.Enum):
             if enum.get_name()[: len("<unnamed-enum-")] == "<unnamed-enum-":
                 continue
             new_enums[enum.get_name()] = EnumData(
@@ -311,7 +313,7 @@ def build_struct_header(data_sources: list[DataSource]):
     all_structs: dict[str, UdtData] = {}
     for data_source in data_sources:
         new_structs: dict[str, UdtData] = {}
-        for struct in data_source.get_symbols(pydia.SymTag.UDT):
+        for struct in data_source.get_symbols(pydia3.SymTag.UDT):
             a = UdtData(struct)
             if a.name == "<unnamed-tag>":
                 continue

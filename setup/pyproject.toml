@@ -27,8 +27,8 @@ Homepage = "https://github.com/Michael-K-Stein/pydia"
 Issues = "https://github.com/Michael-K-Stein/pydia/issues"
 
 [tool.setuptools]
-packages = ["pydia"]
+packages = ["pydia3"]
 include-package-data = false
 
 [tool.setuptools.package-data]
-pydia = ["*.pyd"]
+pydia3 = ["*.pyd"]

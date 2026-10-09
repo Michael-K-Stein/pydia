@@ -434,3 +434,14 @@ FodyWeavers.xsd
 
 DEPRECATED/
 BKP__DiaLib/
+
+# IDA databases and generated output
+*.i64
+*.idb
+*.id0
+*.id1
+*.id2
+*.nam
+*.til
+Examples/WindowsUMHeaders.h
+**/.vscode/settings.json

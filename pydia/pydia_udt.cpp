@@ -66,41 +66,41 @@ static PyMethodDef PyDiaUdt_methods[] = {
 
 // Define the Python DiaData type object
 PyTypeObject PyDiaUdt_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "pydia.Udt", /* tp_name */
-    sizeof(PyDiaUdt),                           /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    (destructor)PyDiaUdt_dealloc,               /* tp_dealloc */
-    0,                                          /* tp_print */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_as_async */
-    0,                                          /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    (hashfunc)PyDiaSymbol_hash,                 /* tp_hash  */
-    0,                                          /* tp_call */
-    0,                                          /* tp_str */
-    0,                                          /* tp_getattro */
-    0,                                          /* tp_setattro */
-    0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-    "UserDefinedType object",                   /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    (richcmpfunc)PyDiaSymbol_richcompare,       /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    PyDiaUdt_methods,                           /* tp_methods */
-    0,                                          /* tp_members */
-    0,                                          /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    (initproc)PyDiaUdt_init,                    /* tp_init */
-    0,                                          /* tp_alloc */
-    PyType_GenericNew,                          /* tp_new */
+    PyVarObject_HEAD_INIT(NULL, 0) "pydia3.Udt", /* tp_name */
+    sizeof(PyDiaUdt),                            /* tp_basicsize */
+    0,                                           /* tp_itemsize */
+    (destructor)PyDiaUdt_dealloc,                /* tp_dealloc */
+    0,                                           /* tp_print */
+    0,                                           /* tp_getattr */
+    0,                                           /* tp_setattr */
+    0,                                           /* tp_as_async */
+    0,                                           /* tp_repr */
+    0,                                           /* tp_as_number */
+    0,                                           /* tp_as_sequence */
+    0,                                           /* tp_as_mapping */
+    (hashfunc)PyDiaSymbol_hash,                  /* tp_hash  */
+    0,                                           /* tp_call */
+    0,                                           /* tp_str */
+    0,                                           /* tp_getattro */
+    0,                                           /* tp_setattro */
+    0,                                           /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                          /* tp_flags */
+    "UserDefinedType object",                    /* tp_doc */
+    0,                                           /* tp_traverse */
+    0,                                           /* tp_clear */
+    (richcmpfunc)PyDiaSymbol_richcompare,        /* tp_richcompare */
+    0,                                           /* tp_weaklistoffset */
+    0,                                           /* tp_iter */
+    0,                                           /* tp_iternext */
+    PyDiaUdt_methods,                            /* tp_methods */
+    0,                                           /* tp_members */
+    0,                                           /* tp_getset */
+    0,                                           /* tp_base */
+    0,                                           /* tp_dict */
+    0,                                           /* tp_descr_get */
+    0,                                           /* tp_descr_set */
+    0,                                           /* tp_dictoffset */
+    (initproc)PyDiaUdt_init,                     /* tp_init */
+    0,                                           /* tp_alloc */
+    PyType_GenericNew,                           /* tp_new */
 };

@@ -33,7 +33,7 @@ jobs:
           $ver = python -c "import tomllib; print(tomllib.load(open('setup/pyproject.toml','rb'))['project']['version'])"
           if ($tag -ne $ver) { throw "Tag '$tag' does not match setup/pyproject.toml version '$ver'" }
 
-      - name: Build pydia.pyd
+      - name: Build pydia3.pyd
         run: msbuild pydia.sln /m /p:Configuration=Release-3.12 /p:Platform=x64 /t:pydia
 
       - name: Build sdist and wheel
@@ -47,7 +47,7 @@ jobs:
         run: |
           python -m venv "$env:RUNNER_TEMP\smoke"
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-3.12/package/dist/*.whl).FullName
-          & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -I -c "import pydia; print(pydia.DataSource)"
+          & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -I -c "import pydia3; print(pydia3.DataSource)"
 
       - uses: actions/upload-artifact@v7
         with:

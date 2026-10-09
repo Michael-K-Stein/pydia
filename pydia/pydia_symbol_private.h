@@ -17,7 +17,7 @@
 
 #define PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE_AND_ITER(className, classMethods, baseType, iterFunc)                                                 \
     PyTypeObject PyDia##className##_Type = {                                                                                                         \
-        PyVarObject_HEAD_INIT(NULL, 0) "pydia." #className,                      /* tp_name */                                                       \
+        PyVarObject_HEAD_INIT(NULL, 0) "pydia3." #className,                     /* tp_name */                                                       \
         sizeof(PyDia##className),                                                /* tp_basicsize */                                                  \
         0,                                                                       /* tp_itemsize */                                                   \
         (destructor)PyDia##className##_dealloc,                                  /* tp_dealloc */                                                    \

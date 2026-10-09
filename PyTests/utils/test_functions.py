@@ -1,12 +1,11 @@
 import random
 
+import pydia3
 import pytest
 from common import (
     AdHocBinaryDataSource,
     get_ntdll_datasource,
 )
-
-import pydia
 
 
 @pytest.mark.parametrize("binary_type", ("exe", "dll"))
@@ -541,7 +540,7 @@ def test_find_syscall_in_ntdll(syscall_name: str):
     data_source = get_ntdll_datasource()
     public_symbol = list(data_source.get_symbol(syscall_name))[0]
     assert public_symbol
-    assert isinstance(public_symbol, pydia.PublicSymbol) or isinstance(
-        public_symbol, pydia.Function
+    assert isinstance(public_symbol, pydia3.PublicSymbol) or isinstance(
+        public_symbol, pydia3.Function
     )
     assert public_symbol.get_name() == syscall_name

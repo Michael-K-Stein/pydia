@@ -1,4 +1,4 @@
-"""Stage the built pydia.pyd into a directory that can be built into a wheel."""
+"""Stage the built pydia3.pyd into a directory that can be built into a wheel."""
 
 import argparse
 import shutil
@@ -17,13 +17,13 @@ def main() -> None:
         parser.error("File extension must be .pyd !")
 
     package_dir = (args.out_root_dir / "package").resolve()
-    extension_dir = package_dir / "pydia"
+    extension_dir = package_dir / "pydia3"
     extension_dir.mkdir(parents=True, exist_ok=True)
 
     (extension_dir / "__init__.py").write_text(
-        "from .pydia import *\n", encoding="utf-8"
+        "from .pydia3 import *\n", encoding="utf-8"
     )
-    shutil.copy(args.pyd_file, extension_dir / "pydia.pyd")
+    shutil.copy(args.pyd_file, extension_dir / "pydia3.pyd")
 
     for name in ("pyproject.toml", "setup.py"):
         shutil.copy(args.setup_root_dir / name, package_dir / name)

@@ -25,7 +25,7 @@ static PyMethodDef PyDiaMethods[] = {
 
 static struct PyModuleDef pydiamodule = {
     PyModuleDef_HEAD_INIT,
-    "pydia",                  /* name of module */
+    "pydia3",                 /* name of module */
     NULL,                     /* module documentation, may be NULL */
     sizeof(PyDiaModuleState), /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
     PyDiaMethods,
@@ -48,7 +48,7 @@ static void pydia_cleanup(PyObject* module)
 
 static PyDiaModuleState* pydia_getModuleState(PyObject* module) { return (PyDiaModuleState*)PyModule_GetState(module); }
 
-PyMODINIT_FUNC PyInit_pydia(void)
+PyMODINIT_FUNC PyInit_pydia3(void)
 {
     PyObject* module              = NULL;
     PyDiaModuleState* moduleState = NULL;

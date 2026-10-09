@@ -23,6 +23,45 @@ The ideaology of **pydia3** is as follows:
 * The C-Python wrappings (pydia) must be as user-friendly and safe as possible. It should be actively difficult to missuse pydia's exported Python API.
 * The DiaLib wrappings should be 100% responsible for all low-level management - especially memory-wise. Unless the user is a dehydrated donkey they should not be able to cause DiaLib to "[seg-fault](https://en.wikipedia.org/wiki/Segmentation_fault)" (0xC0000005 - `STATUS_ACCESS_VIOLATION`).
 
+## Installation
+
+pydia3 is Windows-only (x64) and currently targets **CPython 3.12**.
+
+```powershell
+pip install pydia3
+```
+
+Install it as `pydia3` and import it as `pydia3`. The DIA runtime
+(`msdia140.dll`) must be registered on the machine; it ships with Visual Studio
+(`<VS install>\DIA SDK\bin\amd64\msdia140.dll`). If it isn't registered, run from
+an elevated prompt:
+
+```powershell
+regsvr32 "<VS install>\DIA SDK\bin\amd64\msdia140.dll"
+```
+
+## Usage
+
+```python
+import pydia3
+from pydia3 import DataSource
+
+# Accepts a .pdb, or a binary whose PDB can be found via the symbol path.
+data_source = DataSource(r"C:\Windows\System32\ntdll.dll")
+
+for enum in data_source.get_symbols(pydia3.SymTag.Enum):
+    print(enum.get_name(), enum.get_length(), enum.get_values())
+
+for udt in data_source.get_symbols(pydia3.SymTag.UDT):
+    print(udt.get_name())
+    for member in udt.enumerate_members():
+        print("   ", member.get_name(), hex(member.get_offset()))
+```
+
+See [Examples/Python/ntdll_header_builder.py](Examples/Python/ntdll_header_builder.py)
+for a full example that rebuilds C headers (enums and structs) from PDBs, and
+[PyTests](PyTests) for more API usage.
+
 ## Internals
 
 ### Directory structure
@@ -37,45 +76,6 @@ The ideaology of **pydia3** is as follows:
   * Testing framework for pydia (the C-API Python module) based on [pytest](https://docs.pytest.org/en/stable/).
 * pydia
   * Implementation of the C-API Python module which wraps DiaLib (and by transitivity also the DIA2 SDK)
-
-## Installation
-
-pydia3 is Windows-only (x64) and currently targets **CPython 3.12**.
-
-```powershell
-pip install pydia3
-```
-
-The package is published as `pydia3` but imported as `pydia`. The DIA runtime
-(`msdia140.dll`) must be registered on the machine; it ships with Visual Studio
-(`<VS install>\DIA SDK\bin\amd64\msdia140.dll`). If it isn't registered, run from
-an elevated prompt:
-
-```powershell
-regsvr32 "<VS install>\DIA SDK\bin\amd64\msdia140.dll"
-```
-
-## Usage
-
-```python
-import pydia
-from pydia import DataSource
-
-# Accepts a .pdb, or a binary whose PDB can be found via the symbol path.
-data_source = DataSource(r"C:\Windows\System32\ntdll.dll")
-
-for enum in data_source.get_symbols(pydia.SymTag.Enum):
-    print(enum.get_name(), enum.get_length(), enum.get_values())
-
-for udt in data_source.get_symbols(pydia.SymTag.UDT):
-    print(udt.get_name())
-    for member in udt.enumerate_members():
-        print("   ", member.get_name(), hex(member.get_offset()))
-```
-
-See [Examples/Python/ntdll_header_builder.py](Examples/Python/ntdll_header_builder.py)
-for a full example that rebuilds C headers (enums and structs) from PDBs, and
-[PyTests](PyTests) for more API usage.
 
 ## Building from source
 
@@ -100,7 +100,7 @@ msbuild pydia.sln /m /p:Configuration=Release-3.12 /p:Platform=x64 /t:pydia
 ```
 
 Alternatively, open `pydia.sln` in Visual Studio and build the `Release-3.12 | x64`
-configuration. The build produces `pydia.pyd` and stages a ready-to-package
+configuration. The build produces `pydia3.pyd` and stages a ready-to-package
 folder at `x64\Release-3.12\package`.
 
 ### Build and install a wheel
@@ -110,7 +110,7 @@ cd x64\Release-3.12\package
 python -m pip install build
 python -m build
 python -m pip install (Get-ChildItem dist\*.whl).FullName
-python -c "import pydia; print(pydia.DataSource)"
+python -c "import pydia3; print(pydia3.DataSource)"
 ```
 
 ### Running the tests

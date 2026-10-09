@@ -2,8 +2,7 @@ import os
 
 import pytest
 from common import get_test_resources_dir
-
-from pydia import DataSource, Error
+from pydia3 import DataSource, Error
 
 
 def test_create_empty_datasource():

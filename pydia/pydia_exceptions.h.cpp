@@ -23,7 +23,7 @@ PyObject* pydia_initializeErrors(PyObject* module)
 
 static PyObject* pydia_initializeBaseError(PyObject* module)
 {
-    PyDiaError = PyErr_NewException("pydia.Error", NULL, NULL);
+    PyDiaError = PyErr_NewException("pydia3.Error", NULL, NULL);
     if (!PyDiaError)
     {
         return NULL;
@@ -44,7 +44,7 @@ static PyObject* pydia_initializeTrivialErrors(PyObject* module)
 #define __INITIALIZE_TRIVIAL_PYDIA_ERROR(pureName)                                                                                                   \
     do                                                                                                                                               \
     {                                                                                                                                                \
-        PyDia##pureName##Error = PyErr_NewException("pydia." #pureName, PyDiaError, NULL);                                                           \
+        PyDia##pureName##Error = PyErr_NewException("pydia3." #pureName, PyDiaError, NULL);                                                          \
         if (!(PyDia##pureName##Error))                                                                                                               \
         {                                                                                                                                            \
             return NULL;                                                                                                                             \
