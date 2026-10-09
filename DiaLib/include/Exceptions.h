@@ -16,12 +16,51 @@ class DiaComException : public DiaSymbolMasterException
 public:
     DiaComException(const char* message, HRESULT result)
         : DiaSymbolMasterException{message}
-        , m_result{result} {};
+        , m_result{result}
+        , m_fullDescription{describe(message, result)}
+    {
+    }
 
     HRESULT getResult() const { return m_result; }
 
+    // "<message> [HRESULT 0x80040154: Class not registered]"
+    const char* what() const override { return m_fullDescription.c_str(); }
+
 private:
+    static std::string describe(const char* message, HRESULT result)
+    {
+        char code[16];
+        std::snprintf(code, sizeof(code), "0x%08lX", static_cast<unsigned long>(result));
+
+        std::string text;
+        char* buffer = nullptr;
+        const DWORD size =
+            FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
+                           static_cast<DWORD>(result), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&buffer), 0, NULL);
+        if (0 != size && nullptr != buffer)
+        {
+            text.assign(buffer, size);
+            while (!text.empty() && (text.back() == '' || text.back() == '
+' || text.back() == ' ' || text.back() == '.'))
+            {
+                text.pop_back();
+            }
+        }
+        if (nullptr != buffer)
+        {
+            LocalFree(buffer);
+        }
+
+        std::string full = std::string{message} + " [HRESULT " + code;
+        if (!text.empty())
+        {
+            full += ": " + text;
+        }
+        return full + "]";
+    }
+
     HRESULT m_result{S_OK};
+    std::string m_fullDescription;
 };
 
 class WinApiException : public std::exception
@@ -137,7 +176,7 @@ static inline void CHECK_DIACOM_EXCEPTION(const char* message, HRESULT hResult, 
         if (E_INVALIDARG == hResult)
         {
             /* __debugbreak(); */
-            throw dia::InvalidUsageException("Invalid arguments passed!");
+            throw dia::InvalidUsageException(std::string{"Invalid arguments passed: "} + message);
         }
         if (FAILED(hResult))
         {

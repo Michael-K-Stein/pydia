@@ -55,6 +55,12 @@ jobs:
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-3.12/package/dist/*.whl).FullName
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -I -c "import pydia3; print(pydia3.DataSource)"
 
+      - name: Cache test resources
+        uses: actions/cache@v5
+        with:
+          path: CTests/Resources
+          key: test-resources-${{ hashFiles('.github/scripts/fetch_test_resources.py') }}
+
       - name: Fetch test resources
         run: python .github/scripts/fetch_test_resources.py
 
