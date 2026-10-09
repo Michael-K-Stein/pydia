@@ -17,7 +17,11 @@
 
 TRIVIAL_INIT_DEINIT(PublicSymbol);
 
-static PyMethodDef PyDiaPublicSymbol_methods[] = {
+static PyObject* PyDiaPublicSymbol_getUnderlying(PyDiaPublicSymbol* self);
+static PyMethodDef PyDiaPublicSymbolMethodEntry_getUnderlying = {"get_underlying", (PyCFunction)PyDiaPublicSymbol_getUnderlying, METH_NOARGS,
+                                                                 "Get the symbol this export refers to."};
+
+static PyMethodDef PyDiaPublicSymbol_methods[]                = {
     PyDiaSymbolMethodEntry_getAddressOffset,
     PyDiaSymbolMethodEntry_getAddressSection,
     PyDiaSymbolMethodEntry_isCode,
@@ -34,8 +38,27 @@ static PyMethodDef PyDiaPublicSymbol_methods[] = {
     PyDiaSymbolMethodEntry_getSymTag,
     PyDiaSymbolMethodEntry_getUndecoratedName,
     PyDiaSymbolMethodEntry_getUndecoratedNameEx,
+
+    PyDiaPublicSymbolMethodEntry_getUnderlying,
+
     {NULL, NULL, 0, NULL},  // Sentinel
 };
 
 PYDIA_SYMBOL_TYPE_DEFINITION(PublicSymbol, PyDiaPublicSymbol_methods);
 TRIVIAL_C_TO_PYTHON_SYMBOL_CONVERSION(PublicSymbol);
+
+static PyObject* PyDiaPublicSymbol_getUnderlying(PyDiaPublicSymbol* self)
+{
+    const auto unsafeCode = [](PyDiaPublicSymbol* self) -> PyObject*
+    {
+        const auto rva = self->diaPublicSymbol->getRelativeVirtualAddress();
+        PYDIA_SAFE_TRY_EXCEPT_NOT_AVAILABLE(
+            {
+                auto underlying = self->dataSource->diaDataSource->getSession().findSymbolByRVA(rva, SymTagNull);
+                return PyDiaSymbol_FromSymbol(std::move(underlying), self->dataSource);
+            },
+            { Py_RETURN_NONE; }, PYDIA_SAFE_TRIVIAL_ERROR_HANDLER());
+    };
+    PYDIA_SAFE_TRY({ return unsafeCode(self); });
+    Py_UNREACHABLE();
+}

@@ -10,7 +10,7 @@
 #define PYDIA_SYMBOL_TYPE_DEFINITION(className, classMethods) PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE(className, classMethods, &PyDiaSymbol_Type)
 
 #define PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE(className, classMethods, baseType)                                                                    \
-    PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE_AND_ITER(className, classMethods, baseType, 0)
+    PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE_AND_ITER(className, classMethods, baseType, (getiterfunc)PyDiaSymbol_findChildrenEx)
 
 #define PYDIA_SYMBOL_TYPE_DEFINITION_WITH_ITER(className, classMethods, iterFunc)                                                                    \
     PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE_AND_ITER(className, classMethods, &PyDiaSymbol_Type, iterFunc)
@@ -60,6 +60,10 @@
 Py_hash_t PyDiaSymbol_hash(PyObject* self);
 PyObject* PyDiaSymbol_richcompare(PyObject* self, PyObject* other, int op);
 PyObject* PyDiaSymbol_repr(const PyDiaSymbol* self);
+
+PyObject* PyDiaSymbol_findChildrenEx(const PyDiaSymbol* self);
+static PyMethodDef PyDiaSymbolMethodEntry_findChildrenEx = {"find_children", (PyCFunction)PyDiaSymbol_findChildrenEx, METH_NOARGS,
+                                                            "Enumerate the children of the symbol."};
 
 PyObject* PyDiaSymbol_getAccess(const PyDiaSymbol* self);
 static PyMethodDef PyDiaSymbolMethodEntry_getAccess = {"get_access", (PyCFunction)PyDiaSymbol_getAccess, METH_NOARGS,

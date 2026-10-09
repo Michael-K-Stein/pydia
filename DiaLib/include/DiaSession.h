@@ -17,6 +17,7 @@ public:
     Symbol& getGlobalScope() const;
     DiaSymbolEnumerator<Symbol> getExports() const;
     Symbol getSymbolById(DWORD symbolId) const;
+    Symbol findSymbolByRVA(const RVA& rva, enum SymTagEnum symTag) const;
 
     bool areSymbolsEquivalent(const Symbol& symbolA, const Symbol& symbolB) const;
 

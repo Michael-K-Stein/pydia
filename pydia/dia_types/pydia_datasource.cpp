@@ -21,7 +21,13 @@
 #include <pydia_helper_routines.h>
 
 static PyObject* PyDiaDataSource_loadDataFromPdb(PyDiaDataSource* self, PyObject* args);
+
+static PyObject* PyDiaDataSource_getSymbol(PyDiaDataSource* self, PyObject* args);
 static PyObject* PyDiaDataSource_getSymbols(PyDiaDataSource* self, PyObject* args);
+// For iterfunc
+static PyObject* PyDiaDataSource_iterSymbols(PyDiaDataSource* self);
+
+static PyObject* PyDiaDataSource_getExport(PyDiaDataSource* self, PyObject* args);
 
 static PyObject* PyDiaDataSource_getFunction(PyDiaDataSource* self, PyObject* args);
 static PyObject* PyDiaDataSource_getFunctions(PyDiaDataSource* self);
@@ -133,6 +139,7 @@ static int PyDiaDataSource_init(PyDiaDataSource* self, PyObject* args, PyObject*
 static PyMethodDef PyDiaDataSource_methods[] = {
     {"load_data_from_pdb", (PyCFunction)PyDiaDataSource_loadDataFromPdb, METH_VARARGS, "Load data from a PDB file."},
 
+    {"get_symbol", (PyCFunction)PyDiaDataSource_getSymbol, METH_VARARGS, "Get symbol by name."},
     {"get_symbols", (PyCFunction)PyDiaDataSource_getSymbols, METH_VARARGS, "Get all symbols of specified type."},
 
     {"get_function", (PyCFunction)PyDiaDataSource_getFunction, METH_VARARGS, "Get function by name."},
@@ -177,7 +184,7 @@ PyTypeObject PyDiaDataSource_Type = {
     0,                                                 /* tp_clear */
     0,                                                 /* tp_richcompare */
     0,                                                 /* tp_weaklistoffset */
-    0,                                                 /* tp_iter */
+    (getiterfunc)PyDiaDataSource_iterSymbols,          /* tp_iter */
     0,                                                 /* tp_iternext */
     PyDiaDataSource_methods,                           /* tp_methods */
     0,                                                 /* tp_members */
@@ -259,24 +266,38 @@ static PyObject* getSymbolByName(PyDiaDataSource* self,
     Py_UNREACHABLE();
 }
 
-template <typename EntryT>
-static PyObject* getSymbolsEnumeration(PyDiaDataSource* self, dia::DiaSymbolEnumerator<EntryT>&& rawEnumeration)
+template <typename T>
+static PyObject* getSymbolsByName(PyDiaDataSource* self, PyObject* args, std::function<dia::DiaSymbolEnumerator<T>(const AnyString&)> getter)
 {
-    auto safeExecution = [&]() -> PyObject*
+    // The PyObject argument for symbol name
+    PyObject* pySymbolName = NULL;
+
+    // Parse the argument as a Python object (expected string or bytes)
+    if (!PyArg_ParseTuple(args, "O", &pySymbolName))
     {
-        dia::DiaSymbolEnumerator<EntryT> rawEnumerator = rawEnumeration;
-        PyDiaDataGenerator* generator =
-            (PyDiaDataGenerator*)PyDiaSymbolGenerator_create<PyDiaSymbol, EntryT>(self->diaGlobalScope, std::move(rawEnumerator));
-        if (!generator)
-        {
-            PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
-            return NULL;  // Failed to allocate generator
-        }
+        return NULL;  // If parsing fails, return NULL (error already set)
+    }
 
-        return (PyObject*)generator;
-    };
-
-    PYDIA_SAFE_TRY({ return safeExecution(); });
+    try
+    {
+        auto cSymbols = getter(PyObjectToAnyString(pySymbolName));
+        return PyDiaEnumerator_FromRawEnumerator(self, std::move(cSymbols));
+    }
+    catch (const dia::SymbolNotFoundException& e)
+    {
+        PyErr_SetString(PyExc_ValueError, e.what());
+        return NULL;
+    }
+    catch (const std::runtime_error& e)
+    {
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        return NULL;
+    }
+    catch (const std::bad_alloc&)
+    {
+        PyErr_SetString(PyExc_MemoryError, "Memory allocation failed.");
+        return NULL;
+    }
     Py_UNREACHABLE();
 }
 
@@ -288,7 +309,20 @@ static PyObject* PyDiaDataSource_getFunction(PyDiaDataSource* self, PyObject* ar
     return getSymbolByName(self, args, getterFunc, transformer);
 }
 
-static PyObject* PyDiaDataSource_getFunctions(PyDiaDataSource* self) { return getSymbolsEnumeration(self, self->diaDataSource->getFunctions()); }
+static PyObject* PyDiaDataSource_getFunctions(PyDiaDataSource* self)
+{
+    return PyDiaEnumerator_FromRawEnumerator(self, self->diaDataSource->getFunctions());
+}
+
+static PyObject* PyDiaDataSource_getSymbol(PyDiaDataSource* self, PyObject* args)
+{
+    using T = dia::Symbol;
+    const auto& getSymbolsFunc =
+        static_cast<dia::DiaSymbolEnumerator<T> (dia::DataSource::*)(enum SymTagEnum, const AnyString&, DWORD) const>(&dia::DataSource::getSymbols);
+    std::function<dia::DiaSymbolEnumerator<T>(const AnyString&)> getterFunc =
+        std::bind(getSymbolsFunc, self->diaDataSource, SymTagNull, std::placeholders::_1, nsfRegularExpression | nsfUndecoratedName);
+    return getSymbolsByName(self, args, getterFunc);
+}
 
 static PyObject* PyDiaDataSource_getSymbols(PyDiaDataSource* self, PyObject* args)
 {
@@ -304,31 +338,50 @@ static PyObject* PyDiaDataSource_getSymbols(PyDiaDataSource* self, PyObject* arg
         enum SymTagEnum symTag = static_cast<enum SymTagEnum>(symTagInt);
         auto rawEnumerator     = self->diaDataSource->getSymbols(symTag);
 
-        PyDiaDataGenerator* generator =
-            (PyDiaDataGenerator*)PyDiaSymbolGenerator_create<PyDiaSymbol, dia::Symbol>(self->diaGlobalScope, std::move(rawEnumerator));
+        auto generator         = PyDiaSymbolGenerator_create<PyDiaSymbol, dia::Symbol>(self->diaGlobalScope, std::move(rawEnumerator));
         if (!generator)
         {
             PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
             return NULL;  // Failed to allocate generator
         }
 
-        return (PyObject*)generator;
+        return reinterpret_cast<PyObject*>(generator);
     };
 
     PYDIA_SAFE_TRY({ return safeExecution(); });
     Py_UNREACHABLE();
 }
 
+static PyObject* PyDiaDataSource_iterSymbols(PyDiaDataSource* self)
+{
+    auto safeExecution = [&]() -> PyObject*
+    {
+        auto rawEnumerator = self->diaDataSource->getSymbols(SymTagNull);
+        auto generator     = PyDiaSymbolGenerator_create<PyDiaSymbol, dia::Symbol>(self->diaGlobalScope, std::move(rawEnumerator));
+        if (!generator)
+        {
+            PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
+            return NULL;  // Failed to allocate generator
+        }
+
+        return reinterpret_cast<PyObject*>(generator);
+    };
+
+    PYDIA_SAFE_TRY({ return safeExecution(); });
+    Py_UNREACHABLE();
+}
+
+PyObject* PyDiaDataSource_getExport(PyDiaDataSource* self, PyObject* args) { return nullptr; }
+
 static PyObject* PyDiaDataSource_getEnum(PyDiaDataSource* self, PyObject* args)
 {
-
     using T                                                     = dia::Enum;
     std::function<T(const AnyString&)> getterFunc               = std::bind(&dia::DataSource::getEnum, self->diaDataSource, std::placeholders::_1);
     std::function<PyObject*(T&&, PyDiaDataSource*)> transformer = PyDiaEnum_FromEnumSymbol;
     return getSymbolByName(self, args, getterFunc, transformer);
 }
 
-static PyObject* PyDiaDataSource_getEnums(PyDiaDataSource* self) { return getSymbolsEnumeration(self, self->diaDataSource->getEnums()); }
+static PyObject* PyDiaDataSource_getEnums(PyDiaDataSource* self) { return PyDiaEnumerator_FromRawEnumerator(self, self->diaDataSource->getEnums()); }
 
 static PyObject* PyDiaDataSource_getStruct(PyDiaDataSource* self, PyObject* args)
 {
@@ -340,7 +393,7 @@ static PyObject* PyDiaDataSource_getStruct(PyDiaDataSource* self, PyObject* args
 
 static PyObject* PyDiaDataSource_getUserDefinedTypes(PyDiaDataSource* self)
 {
-    return getSymbolsEnumeration(self, self->diaDataSource->getUserDefinedTypes());
+    return PyDiaEnumerator_FromRawEnumerator(self, self->diaDataSource->getUserDefinedTypes());
 }
 
 static PyObject* PyDiaDataSource_getTypedef(PyDiaDataSource* self, PyObject* args)
@@ -351,7 +404,10 @@ static PyObject* PyDiaDataSource_getTypedef(PyDiaDataSource* self, PyObject* arg
     return getSymbolByName(self, args, getterFunc, transformer);
 }
 
-static PyObject* PyDiaDataSource_getTypedefs(PyDiaDataSource* self) { return getSymbolsEnumeration(self, self->diaDataSource->getTypedefs()); }
+static PyObject* PyDiaDataSource_getTypedefs(PyDiaDataSource* self)
+{
+    return PyDiaEnumerator_FromRawEnumerator(self, self->diaDataSource->getTypedefs());
+}
 
 PyDiaDataSource* PyDiaDataSource_FromInitializerList(PyObject* initializerList)
 {

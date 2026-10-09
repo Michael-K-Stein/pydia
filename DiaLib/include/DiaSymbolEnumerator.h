@@ -266,7 +266,7 @@ inline DiaSymbolEnumerator<T> enumerate(const Symbol& parentSymbol, enum SymTagE
 {
     _ASSERT(SymTagNull <= symTag && symTag < SymTagMax);
     CComPtr<IDiaEnumSymbols> enumSymbols{nullptr};
-    const auto result = parentSymbol.get()->findChildren(symTag, name, compareFlags, &enumSymbols);
+    const auto result = parentSymbol.get()->findChildrenEx(symTag, name, compareFlags, &enumSymbols);
     CHECK_DIACOM_EXCEPTION("Failed to find children!", result);
     return DiaSymbolEnumerator<T>{std::move(enumSymbols)};
 }

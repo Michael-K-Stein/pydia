@@ -34,6 +34,14 @@ Symbol Session::getSymbolById(DWORD symbolId) const
     return foundSymbol;
 }
 
+Symbol Session::findSymbolByRVA(const RVA& rva, enum SymTagEnum symTag) const
+{
+    IDiaSymbol* retVal = nullptr;
+    const auto result  = get()->findSymbolByRVA(rva, symTag, &retVal);
+    CHECK_DIACOM_EXCEPTION("findSymbolByRVA failed!", result);
+    return Symbol{retVal};
+}
+
 bool Session::areSymbolsEquivalent(const Symbol& symbolA, const Symbol& symbolB) const
 {
     const auto result = get()->symsAreEquiv(symbolA.get(), symbolB.get());

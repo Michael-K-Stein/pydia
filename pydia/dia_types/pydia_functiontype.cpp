@@ -56,15 +56,14 @@ TRIVIAL_C_TO_PYTHON_SYMBOL_CONVERSION(FunctionType);
 static PyObject* PyDiaFunctionType_enumerateParameters(PyDiaFunctionType* self)
 {
     auto rawEnumerator = self->diaFunctionType->enumerateParameters();
-    PyDiaDataGenerator* generator =
-        (PyDiaDataGenerator*)PyDiaSymbolGenerator_create<PyDiaFunctionType, dia::FunctionArgType>(self, std::move(rawEnumerator));
+    auto* generator    = PyDiaSymbolGenerator_create<PyDiaFunctionType, dia::FunctionArgType>(self, std::move(rawEnumerator));
     if (!generator)
     {
         PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
         return NULL;  // Failed to allocate generator
     }
 
-    return (PyObject*)generator;
+    return reinterpret_cast<PyObject*>(generator);
 }
 
 static PyObject* PyDiaFunctionType_getDependencies(PyDiaFunctionType* self)

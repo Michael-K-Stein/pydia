@@ -117,6 +117,11 @@ DiaSymbolEnumerator<Symbol> DataSource::getSymbols(enum SymTagEnum symTag, LPCOL
     return enumerate<Symbol>(getGlobalScope(), symTag, symbolName, nameComparisonFlags);
 }
 
+DiaSymbolEnumerator<Symbol> DataSource::getSymbols(enum SymTagEnum symTag, const AnyString& symbolName, DWORD nameComparisonFlags) const
+{
+    return getSymbols(symTag, reinterpret_cast<LPCOLESTR>(symbolName.c_str()), nameComparisonFlags);
+}
+
 Enum DataSource::getEnum(const AnyString& enumName) const
 {
     const auto rawEnumSymbols = std::vector<Symbol>{getSymbols(SymTagEnum, enumName.c_str())};

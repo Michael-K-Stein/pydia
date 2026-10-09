@@ -5,7 +5,7 @@ from typing import Iterator, Iterable
 from collections import defaultdict, deque
 
 # Must be after!
-sys.path.append(os.path.abspath(os.curdir))
+# sys.path.append(os.path.abspath(os.curdir))
 import pydia
 from pydia import DataSource, Struct, Union, Enum
 
@@ -151,7 +151,7 @@ class EnumData:
     def __str__(self):
         return f"""
 enum {self.name} : uint{self.size * 8}_t {{
-    {"\n\t".join(list(str(f"{x} = { self.format_value(self.values[x])},") for x in self.values))}
+    {"\n\t".join(list(str(f"{x} = {self.format_value(self.values[x])},") for x in self.values))}
 }};
 """.strip()
 
@@ -170,18 +170,15 @@ class DataData:
     @staticmethod
     def safe_type_name_resolution(type: pydia.Symbol):
         type_name = pydia.resolve_type_name(type)
-        print(type_name)
         if type_name[0 : len("<unnamed-")] != "<unnamed-":
             return type_name
 
         # This is an unnamed enum/union/struct/...
-        print(type.get_sym_tag())
-
         if type.get_sym_tag() == pydia.SymTag.Enum:
             values = enum_values_to_dict(type.get_values())
             return f"""
 enum {{
-\t{"\n\t".join(list(str(f"{x} = { values[x]},") for x in values))}
+\t{"\n\t".join(list(str(f"{x} = {values[x]},") for x in values))}
 }}
 """.strip()
         elif type.get_sym_tag() == pydia.SymTag.UDT:
@@ -224,7 +221,42 @@ class UdtData:
         return f"using {pure_name} = {self.kind_name} {self.name};\nusing {pointer_name} = {self.kind_name} {self.name}*;"
 
     def members(self):
-        return f"{'\n\t'.join(str(DataData(raw_member)) for raw_member in self.data.enumerate_members())}"
+        members_string = ""
+        am_inside_union = False
+        last_offset = -1
+
+        all_members = list(self.data.enumerate_members())
+
+        next_expected_offset = 0
+
+        for i, raw_member in enumerate(all_members):
+            entered_union_now = False
+            exiting_union_now = False
+
+            if i < len(all_members) - 1:
+                if all_members[i + 1].get_offset() == raw_member.get_offset():
+                    entered_union_now = not am_inside_union
+                    am_inside_union = True
+                else:
+                    exiting_union_now = am_inside_union
+                    am_inside_union = False
+            else:
+                exiting_union_now = am_inside_union
+                am_inside_union = False
+
+            if entered_union_now:
+                members_string += "\nunion {"
+
+            member = DataData(raw_member)
+            members_string += "\n\t"
+            if am_inside_union:
+                members_string += "\t"
+            members_string += str(member)
+
+            if exiting_union_now:
+                members_string += "\n};"
+
+        return members_string.strip()
 
     def modifiers(self):
         return ""
@@ -328,13 +360,13 @@ def build_struct_header(data_sources: list[DataSource]):
         dependencies[enum_name] = []
 
     for definition_name in all_definitions:
-        assert (
-            definition_name in dependencies
-        ), f"Name {definition_name} missing from dependencies dictionary!"
+        assert definition_name in dependencies, (
+            f"Name {definition_name} missing from dependencies dictionary!"
+        )
     for k, dependecy_list in dependencies.items():
-        assert all(
-            d in all_definitions for d in dependecy_list
-        ), f"Dependency list contains names not in definitions set! {k} {dependecy_list}"
+        assert all(d in all_definitions for d in dependecy_list), (
+            f"Dependency list contains names not in definitions set! {k} {dependecy_list}"
+        )
 
     all_definition_names = list(dependencies.keys())
     assert not detect_and_print_cycle(all_definition_names, dependencies)

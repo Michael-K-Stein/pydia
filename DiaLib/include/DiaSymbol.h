@@ -112,11 +112,6 @@ protected:
 
     auto getName() const { return dia::getName(*this); }
 
-#if 0
-    // Not yet implemented!
-    auto findChildren() const { return dia::findChildren(*this); }
-    auto findChildrenEx() const { return dia::findChildrenEx(*this); }
-#endif
     auto findInputAssemblyFile() const { return dia::findInputAssemblyFile(*this); }
 #if 0
     auto getAcceleratorPointerTags() const

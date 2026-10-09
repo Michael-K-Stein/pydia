@@ -3,6 +3,7 @@
 
 // pydia includes
 #include "pydia_all_types.h"
+#include "pydia_exceptions.h"
 #include "pydia_symbol.h"
 
 // DiaLib includes
@@ -146,12 +147,14 @@ PyDiaAbstractGenerator<K, T>* PyDiaSymbolGenerator_create(const K* parent, dia::
     self->enumerator = new (std::nothrow) dia::DiaSymbolEnumerator<T>(std::move(enumerator));
     if (!self->enumerator)
     {
+        Py_DECREF(parent);
         PyErr_SetString(PyExc_MemoryError, "Failed to allocate SymbolGenerator object's internal enumerator.");
         return NULL;
     }
     self->iterator = new (std::nothrow) dia::DiaSymbolEnumerator<T>::Iterator();
     if (!self->iterator)
     {
+        Py_DECREF(parent);
         PyErr_SetString(PyExc_MemoryError, "Failed to allocate SymbolGenerator object's internal iterator.");
         return NULL;
     }
@@ -159,5 +162,33 @@ PyDiaAbstractGenerator<K, T>* PyDiaSymbolGenerator_create(const K* parent, dia::
     // TODO: This looks super fishy
     *self->iterator = std::move(self->enumerator->begin());
 
+    Py_INCREF(self);
     return self;
+}
+
+template <typename EntryT>
+static PyObject* PyDiaEnumerator_FromRawEnumerator(const PyDiaSymbol* parent, dia::DiaSymbolEnumerator<EntryT>&& rawEnumeration)
+{
+    auto safeExecution = [&]() -> PyObject*
+    {
+        dia::DiaSymbolEnumerator<EntryT> rawEnumerator         = rawEnumeration;
+        PyDiaAbstractGenerator<PyDiaSymbol, EntryT>* generator = reinterpret_cast<PyDiaAbstractGenerator<PyDiaSymbol, EntryT>*>(
+            PyDiaSymbolGenerator_create<PyDiaSymbol, EntryT>(parent, std::move(rawEnumerator)));
+        if (!generator)
+        {
+            PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
+            return NULL;  // Failed to allocate generator
+        }
+
+        return (PyObject*)generator;
+    };
+
+    PYDIA_SAFE_TRY({ return safeExecution(); });
+    Py_UNREACHABLE();
+}
+
+template <typename EntryT>
+static PyObject* PyDiaEnumerator_FromRawEnumerator(PyDiaDataSource* dataSource, dia::DiaSymbolEnumerator<EntryT>&& rawEnumeration)
+{
+    return PyDiaEnumerator_FromRawEnumerator<EntryT>(dataSource->diaGlobalScope, std::move(rawEnumeration));
 }

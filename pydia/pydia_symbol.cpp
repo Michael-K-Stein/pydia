@@ -430,13 +430,37 @@ static PyMethodDef PyDiaSymbol_methods[] = {
     {NULL, NULL, 0, NULL}  // Sentinel
 };
 
-#ifdef _DEBUG
+#if (defined(_DEBUG) && false)
 // Allow complete and unmonitored usage of the DiaLib private symbol functions in debug mode.
-PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE(Symbol, PyDiaSymbol_methods, 0);
+PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE(Symbol, PyDiaSymbol_methods, (getiterfunc)PyDiaSymbol_findChildrenEx);
 #else
 // In release mode, users should never directly access DiaLib methods without pydia checking that the type is valid.
 PYDIA_SYMBOL_TYPE_DEFINITION_WITH_BASE(Symbol, 0, 0);
 #endif
+
+
+PyObject* PyDiaSymbol_findChildrenEx(const PyDiaSymbol* self)
+{
+    PYDIA_ASSERT_SYMBOL_POINTERS(self);
+    PYDIA_SAFE_TRY_EXCEPT_NOT_AVAILABLE(
+        { /* Call the C api to findChildrenEx */
+          return PyDiaEnumerator_FromRawEnumerator(self, dia::findChildrenEx(*self->diaSymbol));
+        },
+        {
+            /* If there are no children, return an empty iterator */
+            PyErr_Clear();                          // Clear any pending errors
+            PyObject* emptyTuple = PyTuple_New(0);  // Create an empty tuple
+            if (!emptyTuple)
+            {
+                return nullptr;  // Propagate memory allocation failure
+            }
+            PyObject* emptyIterator = PyObject_GetIter(emptyTuple);  // Create an iterator from the empty tuple
+            Py_DECREF(emptyTuple);                                   // Decrement reference count of the tuple
+            return emptyIterator;                                    // Return the iterator
+        },
+        PYDIA_SAFE_TRIVIAL_ERROR_HANDLER());
+    Py_UNREACHABLE();
+}
 
 // Method: PyDiaSymbol_getClassParent
 PyObject* PyDiaSymbol_getClassParent(const PyDiaSymbol* self)
@@ -867,7 +891,7 @@ PyObject* PyDiaSymbol_getDataKind(const PyDiaSymbol* self)
     PYDIA_SAFE_TRY({
         // Call getDataKind and convert to Python integer (representing the enum DataKind)
         const DataKind dataKind = self->diaSymbol->getDataKind();
-        return PyLong_FromLong(static_cast<long>(dataKind));
+        return PyDiaDataKind_FromDataKind(dataKind);
     });
     Py_UNREACHABLE();
 }
@@ -2512,7 +2536,7 @@ PyObject* PyDiaSymbol_getSymTag(const PyDiaSymbol* self)
     PYDIA_ASSERT_SYMBOL_POINTERS(self);
     PYDIA_SAFE_TRY({
         const enum SymTagEnum symTag = self->diaSymbol->getSymTag();
-        return PyLong_FromUnsignedLong(static_cast<unsigned long>(symTag));
+        return PyDiaSymTag_FromSymTag(symTag);
     });
     Py_UNREACHABLE();
 }

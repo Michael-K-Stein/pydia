@@ -60,7 +60,7 @@ PyObject* PyDiaUdtKind_FromUdtKind(enum UdtKind v) { return PyDiaEnumObject_From
 
 static PyObject* getDiaAccessModifierEnumWrappings() { return g_diaAccessModifierEnumWrappings; }
 
-PyObject* PyDiaAccessModifier_FromAccessModifier(enum AccessModifier v)
+PyObject* PyDiaAccessModifier_FromAccessModifier(dia::AccessModifier v)
 {
     return PyDiaEnumObject_FromEnumValue(getDiaAccessModifierEnumWrappings, v);
 }

@@ -78,67 +78,74 @@ using VA        = DWORD;
 /// @brief Retrieves all children of the symbol.
 /// @param symbol The symbol of which to get the children.
 /// @return An vector of the children symbols.
-const std::vector<Symbol> findChildren(const Symbol& symbol);
+SymbolEnum findChildren(const Symbol& symbol);
 
 /// @brief Retrieves all children of the symbol.
 /// @param symbol The symbol of which to get the children.
 /// @return An vector of the children symbols.
-const std::vector<Symbol> findChildren(const Symbol& symbol, enum SymTagEnum symTag);
+SymbolEnum findChildren(const Symbol& symbol, enum SymTagEnum symTag);
 
 /// @brief Retrieves the children of the symbol. This method is the extended
 /// version of findChildren.
 /// @param symbol The symbol of which to get the children.
 /// @return An enumeration of the children symbols.
-const SymbolEnum findChildrenEx(const Symbol& symbol);
+SymbolEnum findChildrenEx(const Symbol& symbol);
+
+/// @brief Retrieves the children of the symbol. This method is the extended
+/// version of findChildren.
+/// @param symbol The symbol of which to get the children.
+/// @param symTag The type of symbols to retrieve.
+/// @return An enumeration of the children symbols.
+SymbolEnum findChildrenEx(const Symbol& symbol, enum SymTagEnum symTag);
 
 /// @brief Retrieves the children of the symbol that are valid at a
 /// specified address.
 /// @param symbol The symbol of which to get the children.
 /// @param address The address to filter the children.
 /// @return An enumeration of the children symbols.
-const SymbolEnum findChildrenExByAddr(const Symbol& symbol, const Address& address);
+SymbolEnum findChildrenExByAddr(const Symbol& symbol, const Address& address);
 
 /// @brief Retrieves the children of the symbol that are valid at a
 /// specified relative virtual address (RVA).
 /// @param symbol The symbol of which to get the children.
 /// @param rva The relative virtual address to filter the children.
 /// @return An enumeration of the children symbols.
-const SymbolEnum findChildrenExByRVA(const Symbol& symbol, const RVA& rva);
+SymbolEnum findChildrenExByRVA(const Symbol& symbol, const RVA& rva);
 
 /// @brief Retrieves the children of the symbol that are valid at a
 /// specified virtual address (VA).
 /// @param symbol The symbol of which to get the children.
 /// @param va The virtual address to filter the children.
 /// @return An enumeration of the children symbols.
-const SymbolEnum findChildrenExByVA(const Symbol& symbol, const VA& va);
+SymbolEnum findChildrenExByVA(const Symbol& symbol, const VA& va);
 
 /// @brief Retrieves an enumeration that allows a client to iterate through
 /// all of the inline frames on a given address.
 /// @param symbol The symbol of which to get the inline frames.
 /// @param address The address to filter the inline frames.
 /// @return An enumeration of the inline frames.
-const FrameEnum findInlineFramesByAddr(const Symbol& symbol, const Address& address);
+FrameEnum findInlineFramesByAddr(const Symbol& symbol, const Address& address);
 
 /// @brief Retrieves an enumeration that allows a client to iterate through
 /// all of the inline frames on a specified relative virtual address (RVA).
 /// @param symbol The symbol of which to get the inline frames.
 /// @param rva The relative virtual address to filter the inline frames.
 /// @return An enumeration of the inline frames.
-const FrameEnum findInlineFramesByRVA(const Symbol& symbol, const RVA& rva);
+FrameEnum findInlineFramesByRVA(const Symbol& symbol, const RVA& rva);
 
 /// @brief Retrieves an enumeration that allows a client to iterate through
 /// all of the inline frames on a specified virtual address (VA).
 /// @param symbol The symbol of which to get the inline frames.
 /// @param va The virtual address to filter the inline frames.
 /// @return An enumeration of the inline frames.
-const FrameEnum findInlineFramesByVA(const Symbol& symbol, const VA& va);
+FrameEnum findInlineFramesByVA(const Symbol& symbol, const VA& va);
 
 /// @brief Retrieves an enumeration that allows a client to iterate through
 /// the line number information of all functions that are inlined, directly
 /// or indirectly, in this symbol.
 /// @param symbol The symbol of which to get the inlinee lines.
 /// @return An enumeration of the inlinee lines.
-const LineEnum findInlineeLines(const Symbol& symbol);
+LineEnum findInlineeLines(const Symbol& symbol);
 
 /// @brief Retrieves an enumeration that allows a client to iterate through
 /// the line number information of all functions that are inlined, directly
@@ -146,7 +153,7 @@ const LineEnum findInlineeLines(const Symbol& symbol);
 /// @param symbol The symbol of which to get the inlinee lines.
 /// @param address The address range to filter the inlinee lines.
 /// @return An enumeration of the inlinee lines.
-const LineEnum findInlineeLinesByAddr(const Symbol& symbol, const Address& address);
+LineEnum findInlineeLinesByAddr(const Symbol& symbol, const Address& address);
 
 /// @brief Retrieves an enumeration that allows a client to iterate through
 /// the line number information of all functions that are inlined, directly
@@ -155,7 +162,7 @@ const LineEnum findInlineeLinesByAddr(const Symbol& symbol, const Address& addre
 /// @param symbol The symbol of which to get the inlinee lines.
 /// @param rva The relative virtual address to filter the inlinee lines.
 /// @return An enumeration of the inlinee lines.
-const LineEnum findInlineeLinesByRVA(const Symbol& symbol, const RVA& rva);
+LineEnum findInlineeLinesByRVA(const Symbol& symbol, const RVA& rva);
 
 /// @brief Retrieves an enumeration that allows a client to iterate through
 /// the line number information of all functions that are inlined, directly
@@ -163,7 +170,7 @@ const LineEnum findInlineeLinesByRVA(const Symbol& symbol, const RVA& rva);
 /// @param symbol The symbol of which to get the inlinee lines.
 /// @param va The virtual address to filter the inlinee lines.
 /// @return An enumeration of the inlinee lines.
-const LineEnum findInlineeLinesByVA(const Symbol& symbol, const VA& va);
+LineEnum findInlineeLinesByVA(const Symbol& symbol, const VA& va);
 
 /// @brief Retrieves the .NET Native input assembly file that is the parent
 /// of the symbol.
@@ -178,7 +185,7 @@ const InputAssemblyFile findInputAssemblyFile(const Symbol& symbol);
 /// @param rva The relative virtual address to filter the symbols.
 /// @param tag The tag value to filter the symbols.
 /// @return An enumeration of the symbols.
-const SymbolEnum findSymbolsByRVAForAcceleratorPointerTag(const Symbol& symbol, const RVA& rva, const Tag& tag);
+SymbolEnum findSymbolsByRVAForAcceleratorPointerTag(const Symbol& symbol, const RVA& rva, const Tag& tag);
 
 #if 0
 /// @brief Returns the number of accelerator pointer tags in a C++ AMP stub

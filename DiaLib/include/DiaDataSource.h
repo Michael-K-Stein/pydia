@@ -48,6 +48,7 @@ public:
     DiaSymbolEnumerator<Symbol> getSymbols(enum SymTagEnum symTag) const;
     DiaSymbolEnumerator<Symbol> getSymbols(enum SymTagEnum symTag, LPCOLESTR symbolName) const;
     DiaSymbolEnumerator<Symbol> getSymbols(enum SymTagEnum symTag, LPCOLESTR symbolName, DWORD nameComparisonFlags) const;
+    DiaSymbolEnumerator<Symbol> getSymbols(enum SymTagEnum symTag, const AnyString& symbolName, DWORD nameComparisonFlags) const;
 
     DiaSymbolEnumerator<Symbol> getUntypedSymbols() const;
     DiaSymbolEnumerator<Symbol> getCompilands() const;

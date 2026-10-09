@@ -62,15 +62,15 @@ static PyObject* PyDiaEnum_getValues(PyDiaEnum* self)
 
     auto safeExecution = [&]() -> PyObject*
     {
-        auto rawEnumerator            = self->diaEnum->getValues();
-        PyDiaDataGenerator* generator = (PyDiaDataGenerator*)PyDiaSymbolGenerator_create<PyDiaEnum, dia::Data>(self, std::move(rawEnumerator));
+        auto rawEnumerator = self->diaEnum->getValues();
+        auto generator     = PyDiaSymbolGenerator_create<PyDiaEnum, dia::Data>(self, std::move(rawEnumerator));
         if (!generator)
         {
             PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
             return NULL;  // Failed to allocate generator
         }
 
-        return (PyObject*)generator;
+        return reinterpret_cast<PyObject*>(generator);
     };
 
     PYDIA_SAFE_TRY({ return safeExecution(); });

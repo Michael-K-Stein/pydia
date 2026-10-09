@@ -4,6 +4,7 @@
 #include "DiaHashing.h"
 #include "DiaPrint.h"
 #include "DiaSymbol.h"
+#include "DiaSymbolEnumerator.h"
 #include "DiaTypeResolution.h"
 #include "DiaUserDefinedTypeWrapper.h"
 #include "Exceptions.h"

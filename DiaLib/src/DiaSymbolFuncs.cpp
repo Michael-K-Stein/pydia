@@ -1821,27 +1821,14 @@ bool getWasInlined(const Symbol& symbol)
     return FALSE != retVal;
 }
 
-const std::vector<Symbol> findChildren(const Symbol& symbol)
-{
-    std::vector<Symbol> allChildren{};
-    for (DWORD symTag = SymTagNull; symTag < SymTagMax; ++symTag)
-    {
-        for (const auto& sym : enumerate<Symbol>(symbol, static_cast<enum SymTagEnum>(symTag)))
-        {
-            allChildren.push_back(sym);
-        }
-    }
-    return allChildren;
-}
+// TODO: This actually calls findChildrenEx...
+SymbolEnum findChildren(const Symbol& symbol) { return enumerate<Symbol>(symbol, static_cast<enum SymTagEnum>(SymTagNull)); }
 
-const std::vector<Symbol> findChildren(const Symbol& symbol, enum SymTagEnum symTag)
-{
-    std::vector<Symbol> allChildren{};
-    for (const auto& sym : enumerate<Symbol>(symbol, symTag))
-    {
-        allChildren.push_back(sym);
-    }
-    return allChildren;
-}
+// TODO: This actually calls findChildrenEx...
+SymbolEnum findChildren(const Symbol& symbol, enum SymTagEnum symTag) { return enumerate<Symbol>(symbol, symTag); }
+
+SymbolEnum findChildrenEx(const Symbol& symbol) { return enumerate<Symbol>(symbol, static_cast<enum SymTagEnum>(SymTagNull)); }
+
+SymbolEnum findChildrenEx(const Symbol& symbol, enum SymTagEnum symTag) { return enumerate<Symbol>(symbol, symTag); }
 
 }  // namespace dia
