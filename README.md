@@ -25,7 +25,7 @@ The ideaology of **pydia3** is as follows:
 
 ## Installation
 
-pydia3 is Windows-only (x64) and currently targets **CPython 3.12**.
+pydia3 is Windows-only (x64) and supports **CPython 3.12, 3.13 and 3.14**.
 
 ```powershell
 pip install pydia3
@@ -84,14 +84,15 @@ for a full example that rebuilds C headers (enums and structs) from PDBs, and
 * Windows x64.
 * Visual Studio 2022 with the **Desktop development with C++** workload (this
   includes the DIA SDK, at `<VS install>\DIA SDK`).
-* CPython 3.12 x64 (python.org installer), including its headers and import libraries.
+* CPython 3.12, 3.13 or 3.14 x64 (python.org installer), including its headers and import libraries.
 
 ### Build
 
 From a *Developer PowerShell for VS 2022*:
 
 ```powershell
-# Where Python 3.12 is installed (defaults to C:\Python312).
+# Where the target Python (3.12-3.14) is installed (defaults to C:\Python312).
+# The extension is built for, and the wheel tagged for, this interpreter.
 $env:PYTHON_HOME = python -c "import sys; print(sys.base_prefix)"
 # Optional: only needed if the DIA SDK isn't at <VS install>\DIA SDK.
 # $env:DIA_SDK_DIR = "C:\path\to\DIA SDK"
@@ -100,7 +101,7 @@ msbuild pydia.sln /m /p:Configuration=Release-3.12 /p:Platform=x64 /t:pydia
 ```
 
 Alternatively, open `pydia.sln` in Visual Studio and build the `Release-3.12 | x64`
-configuration. The build produces `pydia3.pyd` and stages a ready-to-package
+configuration (the name is historical; it builds for whichever Python `PYTHON_HOME` points at). The build produces `pydia3.pyd` and stages a ready-to-package
 folder at `x64\Release-3.12\package`.
 
 ### Build and install a wheel
@@ -108,7 +109,7 @@ folder at `x64\Release-3.12\package`.
 ```powershell
 cd x64\Release-3.12\package
 python -m pip install build
-python -m build
+python -m build --wheel
 python -m pip install (Get-ChildItem dist\*.whl).FullName
 python -c "import pydia3; print(pydia3.DataSource)"
 ```
