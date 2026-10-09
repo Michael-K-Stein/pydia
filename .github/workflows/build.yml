@@ -53,6 +53,15 @@ jobs:
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-3.12/package/dist/*.whl).FullName
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -I -c "import pydia3; print(pydia3.DataSource)"
 
+      - name: Register the DIA SDK COM server
+        shell: pwsh
+        run: |
+          $vs = vswhere -latest -property installationPath
+          $dll = Join-Path $vs "DIA SDK\bin\amd64\msdia140.dll"
+          if (-not (Test-Path $dll)) { throw "msdia140.dll not found at $dll" }
+          regsvr32 /s $dll
+          if ($LASTEXITCODE -ne 0) { throw "regsvr32 failed for $dll ($LASTEXITCODE)" }
+
       - name: Cache test resources
         uses: actions/cache@v5
         with:
