@@ -41,7 +41,7 @@ static PyMethodDef PyDiaFunctionType_methods[] = {
 
     {"enumerate_parameters", (PyCFunction)PyDiaFunctionType_enumerateParameters, METH_NOARGS, "Enumerate the parameters of the function type."},
 
-    {"get_dependencies", (PyCFunction)PyDiaFunctionType_getDependencies, METH_VARARGS,
+    {"get_dependencies", (PyCFunction)PyDiaFunctionType_getDependencies, METH_NOARGS,
      "Return the other types that this function signatures depends on. Pointer dependecies (forward declerations) are not included."},
 
     {NULL, NULL, 0, NULL}  // Sentinel
@@ -55,15 +55,24 @@ TRIVIAL_C_TO_PYTHON_SYMBOL_CONVERSION(FunctionType);
 
 static PyObject* PyDiaFunctionType_enumerateParameters(PyDiaFunctionType* self)
 {
-    auto rawEnumerator = self->diaFunctionType->enumerateParameters();
-    auto* generator    = PyDiaSymbolGenerator_create<PyDiaFunctionType, dia::FunctionArgType>(self, std::move(rawEnumerator));
-    if (!generator)
-    {
-        PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
-        return NULL;  // Failed to allocate generator
-    }
+    _ASSERT(NULL != self);
+    _ASSERT(NULL != self->diaFunctionType);
 
-    return reinterpret_cast<PyObject*>(generator);
+    auto safeExecution = [&]() -> PyObject*
+    {
+        auto rawEnumerator = self->diaFunctionType->enumerateParameters();
+        auto* generator    = PyDiaSymbolGenerator_create<PyDiaFunctionType, dia::FunctionArgType>(self, std::move(rawEnumerator));
+        if (!generator)
+        {
+            PyErr_SetString(PyExc_RuntimeError, "Failed to create generator.");
+            return NULL;  // Failed to allocate generator
+        }
+
+        return reinterpret_cast<PyObject*>(generator);
+    };
+
+    PYDIA_SAFE_TRY({ return safeExecution(); });
+    Py_UNREACHABLE();
 }
 
 static PyObject* PyDiaFunctionType_getDependencies(PyDiaFunctionType* self)

@@ -7,31 +7,37 @@
 #include "dia_types/pydia_datasource.h"
 #include "pydia_exceptions.h"
 
-#define TRIVIAL_INIT_DEINIT_CUSTOM_FIELD(diaName, fieldName)                                                                                           \
-    static void PyDia##diaName##_dealloc(PyDia##diaName* self)                                                                                         \
-    {                                                                                                                                                  \
-        if (self->dia##fieldName)                                                                                                                      \
-        {                                                                                                                                              \
-            delete self->dia##fieldName;                                                                                                               \
-        }                                                                                                                                              \
-        Py_TYPE(self)->tp_free((PyObject*)self);                                                                                                       \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
-    static int PyDia##diaName##_init(PyDia##diaName* self, PyObject* args, PyObject* kwds)                                                             \
-    {                                                                                                                                                  \
-        const auto unsafeInit =                                                                                                                      \
-            [&]() -> int { /* Check if the function was called with 0 or 2 arguments*/                                                               \
-                           if (0 == PyTuple_Size(args))                                                                                              \
-                           {                                                                                                                         \
+#define TRIVIAL_INIT_DEINIT_CUSTOM_FIELD(diaName, fieldName)                                                                                             \
+    static void PyDia##diaName##_dealloc(PyDia##diaName* self)                                                                                           \
+    {                                                                                                                                                    \
+        if (self->dia##fieldName)                                                                                                                        \
+        {                                                                                                                                                \
+            delete self->dia##fieldName;                                                                                                                 \
+        }                                                                                                                                                \
+        Py_XDECREF(self->dataSource);                                                                                                                    \
+        Py_TYPE(self)->tp_free((PyObject*)self);                                                                                                         \
+    }                                                                                                                                                    \
+                                                                                                                                                         \
+    static int PyDia##diaName##_init(PyDia##diaName* self, PyObject* args, PyObject* kwds)                                                               \
+    {                                                                                                                                                    \
+        const auto unsafeInit =                                                                                                                        \
+            [&]() -> int { /* Check if the function was called with 0 or 2 arguments*/                                                                 \
+                           /* Release the state of a previous __init__ call, if there was any */                                                         \
+                           delete self->dia##fieldName;                                                                                                  \
+                           self->dia##fieldName = nullptr;                                                                                               \
+                           Py_CLEAR(self->dataSource);                                                                                                   \
+                           if (0 == PyTuple_Size(args))                                                                                                  \
+                           {                                                                                                                             \
                                /* No arguments : use default constructor*/                                                                           \
                                self->dia##fieldName = new (std::nothrow) dia::##fieldName();                                                         \
                            }                                                                                                                         \
                            else if (2 == PyTuple_Size(args))                                                                                         \
                            {                                                                                                                         \
                                /* Expecting 2 arguments : dataSource and index */                                                                    \
-                               PyObject* arg1              = PyTuple_GetItem(args, 0);                                                               \
-                               PyObject* arg2              = PyTuple_GetItem(args, 1);                                                               \
+                               PyObject* arg1 = PyTuple_GetItem(args, 0);                                                                            \
+                               PyObject* arg2 = PyTuple_GetItem(args, 1);                                                                            \
                                                                                                                                                      \
+                               /* A new reference, which is either handed over to the symbol or released */                                          \
                                PyDiaDataSource* dataSource = PyDiaDataSource_FromInitializerList(arg1);                                              \
                                if (!dataSource)                                                                                                      \
                                {                                                                                                                     \
@@ -40,8 +46,9 @@
                                }                                                                                                                     \
                                                                                                                                                      \
                                const auto symbolHash = PyLong_AsSize_t(arg2);                                                                        \
-                               if (symbolHash == -1 && PyErr_Occurred())                                                                             \
+                               if (symbolHash == static_cast<size_t>(-1) && PyErr_Occurred())                                                        \
                                {                                                                                                                     \
+                                   Py_DECREF(dataSource);                                                                                            \
                                    PyErr_SetString(PyExc_TypeError, "Second argument must be an integer.");                                          \
                                    return -1;                                                                                                        \
                                }                                                                                                                     \
@@ -49,11 +56,23 @@
                                /* Create the data object with dataSource and index */                                                                \
                                _ASSERT_EXPR(nullptr != dataSource->diaDataSource, L"DataSource must have a valid internal state!");                  \
                                _ASSERT_EXPR(nullptr != dataSource->diaGlobalScope, L"DataSource must have a valid internal state!");                 \
-                               self->dia##fieldName = new (std::nothrow) dia::##fieldName(dataSource->diaDataSource->getSymbolByHash(symbolHash));   \
+                               try                                                                                                                   \
+                               {                                                                                                                     \
+                                   self->dia##fieldName =                                                                                            \
+                                       new (std::nothrow) dia::##fieldName(dataSource->diaDataSource->getSymbolByHash(symbolHash));                  \
+                               }                                                                                                                     \
+                               catch (...)                                                                                                           \
+                               {                                                                                                                     \
+                                   Py_DECREF(dataSource);                                                                                            \
+                                   throw;                                                                                                            \
+                               }                                                                                                                     \
                                if (!!self->dia##fieldName)                                                                                           \
                                {                                                                                                                     \
-                                   Py_INCREF(dataSource);                                                                                            \
                                    self->dataSource = dataSource;                                                                                    \
+                               }                                                                                                                     \
+                               else                                                                                                                  \
+                               {                                                                                                                     \
+                                   Py_DECREF(dataSource);                                                                                            \
                                }                                                                                                                     \
                            }                                                                                                                         \
                            else                                                                                                                      \
@@ -63,27 +82,31 @@
                            }                                                                                                                         \
                            return 0;                                                                                                                 \
         }; \
-                                                                                                                                                       \
-        int retVal = -1;                                                                                                                               \
-        PYDIA_SAFE_TRY_EXCEPT(                                                                                                                         \
-            { retVal = unsafeInit(); },                                                                                                                \
-            {                                                                                                                                          \
-                PyErr_SetString(PyDiaError, e.what());                                                                                                 \
-                return -1;                                                                                                                             \
-            });                                                                                                                                        \
-        if (0 > retVal)                                                                                                                                \
-        {                                                                                                                                              \
-            return retVal;                                                                                                                             \
-        }                                                                                                                                              \
-                                                                                                                                                       \
-        /* Check if allocation succeeded */                                                                                                            \
-        if (!self->dia##fieldName)                                                                                                                     \
-        {                                                                                                                                              \
-            PyErr_SetString(PyExc_MemoryError, "Failed to create " #diaName " object.");                                                               \
-            return -1;                                                                                                                                 \
-        }                                                                                                                                              \
-                                                                                                                                                       \
-        return 0;                                                                                                                                      \
+                                                                                                                                                         \
+        int retVal = -1;                                                                                                                                 \
+        PYDIA_SAFE_TRY_EXCEPT_NOT_AVAILABLE(                                                                                                             \
+            { retVal = unsafeInit(); },                                                                                                                  \
+            {                                                                                                                                            \
+                PyErr_SetString(PyDiaPropertyNotAvailableError, e.what());                                                                               \
+                return -1;                                                                                                                               \
+            },                                                                                                                                           \
+            {                                                                                                                                            \
+                PyErr_SetString(PyDiaError, e.what());                                                                                                   \
+                return -1;                                                                                                                               \
+            });                                                                                                                                          \
+        if (0 > retVal)                                                                                                                                  \
+        {                                                                                                                                                \
+            return retVal;                                                                                                                               \
+        }                                                                                                                                                \
+                                                                                                                                                         \
+        /* Check if allocation succeeded */                                                                                                              \
+        if (!self->dia##fieldName)                                                                                                                       \
+        {                                                                                                                                                \
+            PyErr_SetString(PyExc_MemoryError, "Failed to create " #diaName " object.");                                                                 \
+            return -1;                                                                                                                                   \
+        }                                                                                                                                                \
+                                                                                                                                                         \
+        return 0;                                                                                                                                        \
     }
 
 #define TRIVIAL_INIT_DEINIT(diaName) TRIVIAL_INIT_DEINIT_CUSTOM_FIELD(diaName, diaName)
@@ -99,9 +122,14 @@
             return NULL;                                                                                                                             \
         }                                                                                                                                            \
                                                                                                                                                      \
+        /* PyObject_New does not initialize the members, and the deallocator inspects them */                                                        \
+        pySymbol->dia##fieldName = nullptr;                                                                                                          \
+        pySymbol->dataSource     = nullptr;                                                                                                          \
+                                                                                                                                                     \
         pySymbol->dia##fieldName = new (std::nothrow) dia::##fieldName(symbol);                                                                      \
         if (!(pySymbol->dia##fieldName))                                                                                                             \
         {                                                                                                                                            \
+            Py_DECREF(pySymbol);                                                                                                                     \
             PyErr_SetString(PyExc_MemoryError, "Failed to create Dia" #className "'s internal state.");                                              \
             return NULL;                                                                                                                             \
         }                                                                                                                                            \
@@ -109,7 +137,7 @@
         Py_INCREF(dataSource);                                                                                                                       \
         pySymbol->dataSource = dataSource;                                                                                                           \
                                                                                                                                                      \
-        Py_INCREF(pySymbol);                                                                                                                         \
+        /* PyObject_New already returned a new reference */                                                                                          \
         return reinterpret_cast<PyObject*>(pySymbol);                                                                                                \
     }
 

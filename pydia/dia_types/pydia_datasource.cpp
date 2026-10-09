@@ -18,6 +18,8 @@
 
 // C++ DiaSymbolMaster imports
 #include "DiaDataSource.h"
+#include <functional>
+#include <memory>
 #include <pydia_helper_routines.h>
 
 static PyObject* PyDiaDataSource_loadDataFromPdb(PyDiaDataSource* self, PyObject* args);
@@ -53,9 +55,17 @@ static void PyDiaDataSource_dealloc(PyDiaDataSource* self)
 // Updated initialization function
 static int PyDiaDataSource_init(PyDiaDataSource* self, PyObject* args, PyObject* kwds)
 {
-    dia::DataSource* tempDataSource = nullptr;  // Temporary pointer
+    // Owns the data source until the initialization is complete, so an exception can not leak it
+    std::unique_ptr<dia::DataSource> tempDataSource;
 
-    const auto unsafeInit           = [&]() -> int
+    // Converts an argument to a string. Returns false (with a Python exception set) if the conversion failed
+    const auto convertString = [](PyObject* arg, AnyString& result) -> bool
+    {
+        result = PyObjectToAnyString(arg);
+        return !PyErr_Occurred();
+    };
+
+    const auto unsafeInit = [&]() -> int
     {
         try
         {
@@ -66,19 +76,29 @@ static int PyDiaDataSource_init(PyDiaDataSource* self, PyObject* args, PyObject*
                 return -1;
 #if 0  // Haven't found a valid use case for this...
        // Use the default constructor
-                tempDataSource = new (std::nothrow) dia::DataSource();
+                tempDataSource.reset(new (std::nothrow) dia::DataSource());
 #endif
             }
             else if (PyTuple_Size(args) == 1)
             {
                 // Handle the first argument as filePath
-                tempDataSource = new (std::nothrow) dia::DataSource(PyObjectToAnyString(PyTuple_GetItem(args, 0)));
+                AnyString filePath;
+                if (!convertString(PyTuple_GetItem(args, 0), filePath))
+                {
+                    return -1;
+                }
+                tempDataSource.reset(new (std::nothrow) dia::DataSource(filePath));
             }
             else if (PyTuple_Size(args) == 2)
             {
                 // Handle the first argument as filePath and the second as symstoreDirectory
-                tempDataSource =
-                    new (std::nothrow) dia::DataSource(PyObjectToAnyString(PyTuple_GetItem(args, 0)), PyObjectToAnyString(PyTuple_GetItem(args, 1)));
+                AnyString filePath;
+                AnyString symstoreDirectory;
+                if (!convertString(PyTuple_GetItem(args, 0), filePath) || !convertString(PyTuple_GetItem(args, 1), symstoreDirectory))
+                {
+                    return -1;
+                }
+                tempDataSource.reset(new (std::nothrow) dia::DataSource(filePath, symstoreDirectory));
             }
             else
             {
@@ -92,48 +112,45 @@ static int PyDiaDataSource_init(PyDiaDataSource* self, PyObject* args, PyObject*
             PyErr_SetString(PyDiaError, e.what());
             return -1;
         }
+
+        // Check if the DataSource was created successfully
+        if (!tempDataSource)
+        {
+            PyErr_SetString(PyExc_MemoryError, "Failed to create DataSource object with provided arguments.");
+            return -1;
+        }
+
+        // Querying the global scope uses the COM object, which may throw
+        auto capturedGlobalScope{tempDataSource->getGlobalScope()};
+        auto tempGlobalScope = PyDiaSymbol_FromSymbol(std::move(capturedGlobalScope), self);
+        if (!tempGlobalScope)
+        {
+            // The symbol conversion has already set the exception
+            return -1;
+        }
+
+        // Replace the state of a previous __init__ call, if there was any
+        delete self->diaDataSource;
+        Py_XDECREF(self->diaGlobalScope);
+
+        // Assign the created DataSource to the member variable
+        self->diaDataSource  = tempDataSource.release();
+        self->diaGlobalScope = (PyDiaSymbol*)tempGlobalScope;
         return 0;
     };
 
     int retVal = -1;
-    PYDIA_SAFE_TRY_EXCEPT(
+    PYDIA_SAFE_TRY_EXCEPT_NOT_AVAILABLE(
         { retVal = unsafeInit(); },
+        {
+            PyErr_SetString(PyDiaPropertyNotAvailableError, e.what());
+            return -1;
+        },
         {
             PyErr_SetString(PyDiaError, e.what());
             return -1;
         });
-    if (0 > retVal)
-    {
-        return retVal;
-    }
-
-    // Check if the DataSource was created successfully
-    if (!tempDataSource)
-    {
-        PyErr_SetString(PyExc_MemoryError, "Failed to create DataSource object with provided arguments.");
-        return -1;
-    }
-
-    auto capturedGlobalScope{tempDataSource->getGlobalScope()};
-    auto tempGlobalScope = PyDiaSymbol_FromSymbol(std::move(capturedGlobalScope), self);
-    // Check if the DataSource was created successfully
-    if (!tempGlobalScope)
-    {
-        if (tempDataSource)
-        {
-            delete tempDataSource;
-        }
-        PyErr_SetString(PyExc_MemoryError, "Failed to create DataSource object with provided arguments.");
-        return -1;
-    }
-
-    // Assign the created DataSource to the member variable
-    self->diaDataSource  = tempDataSource;
-    tempDataSource       = nullptr;
-    self->diaGlobalScope = (PyDiaSymbol*)tempGlobalScope;
-    tempGlobalScope      = nullptr;
-
-    return 0;
+    return retVal;
 }
 
 // Python method table for DiaDataSource
@@ -212,14 +229,25 @@ static PyObject* PyDiaDataSource_loadDataFromPdb(PyDiaDataSource* self, PyObject
         return NULL;  // If parsing fails, return NULL (error already set)
     }
 
+    // PyObjectToAnyString creates a new copy of the string which is C++ memory managed
+    const auto filePath = PyObjectToAnyString(pyFilePath);
+    if (PyErr_Occurred())
+    {
+        return NULL;  // The conversion failed, and already set the exception
+    }
+
     try
     {
-        // PyObjectToAnyString creates a new copy of the string which is C++ memory managed
-        self->diaDataSource->loadDataFromPdb(PyObjectToAnyString(pyFilePath));
+        self->diaDataSource->loadDataFromPdb(filePath);
     }
     catch (const dia::InvalidUsageException& e)
     {
         PyErr_SetString(PyDiaInvalidUsageError, e.what());
+        return NULL;
+    }
+    catch (const std::exception& e)
+    {
+        PyErr_SetString(PyDiaError, e.what());
         return NULL;
     }
 
@@ -243,10 +271,16 @@ static PyObject* getSymbolByName(PyDiaDataSource* self,
         return NULL;  // If parsing fails, return NULL (error already set)
     }
 
+    const auto symbolName = PyObjectToAnyString(pySymbolName);
+    if (PyErr_Occurred())
+    {
+        return NULL;  // The conversion failed, and already set the exception
+    }
+
     // Try to retrieve the smbol using the provided name
     try
     {
-        auto cSymbol = getter(PyObjectToAnyString(pySymbolName));
+        auto cSymbol = getter(symbolName);
         return transformer(std::move(cSymbol), self);
     }
     catch (const dia::SymbolNotFoundException& e)
@@ -279,9 +313,15 @@ static PyObject* getSymbolsByName(PyDiaDataSource* self, PyObject* args, std::fu
         return NULL;  // If parsing fails, return NULL (error already set)
     }
 
+    const auto symbolName = PyObjectToAnyString(pySymbolName);
+    if (PyErr_Occurred())
+    {
+        return NULL;  // The conversion failed, and already set the exception
+    }
+
     try
     {
-        auto cSymbols = getter(PyObjectToAnyString(pySymbolName));
+        auto cSymbols = getter(symbolName);
         return PyDiaEnumerator_FromRawEnumerator(self, std::move(cSymbols));
     }
     catch (const dia::SymbolNotFoundException& e)
@@ -412,8 +452,15 @@ static PyObject* PyDiaDataSource_getTypedefs(PyDiaDataSource* self)
 
 PyDiaDataSource* PyDiaDataSource_FromInitializerList(PyObject* initializerList)
 {
-    if (PyObject_IsInstance(initializerList, (PyObject*)&PyDiaDataSource_Type))
+    // The returned reference is always a new one, which the caller must release (or hand over)
+    const int isDataSource = PyObject_IsInstance(initializerList, (PyObject*)&PyDiaDataSource_Type);
+    if (0 > isDataSource)
     {
+        return NULL;
+    }
+    if (isDataSource)
+    {
+        Py_INCREF(initializerList);
         return (PyDiaDataSource*)initializerList;
     }
 
@@ -435,7 +482,9 @@ PyDiaDataSource* PyDiaDataSource_FromInitializerList(PyObject* initializerList)
         }
 
         // Initialize the PyDiaDataSource object with the string data source
-        if (0 > PyDiaDataSource_init(dataSourceObj, pyTupleOfString, NULL))
+        const int initResult = PyDiaDataSource_init(dataSourceObj, pyTupleOfString, NULL);
+        Py_DECREF(pyTupleOfString);
+        if (0 > initResult)
         {
             Py_DECREF(dataSourceObj);  // Clean up if initialization fails
             return NULL;

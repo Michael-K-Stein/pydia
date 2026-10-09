@@ -21,10 +21,8 @@ static PyObject* PyDiaEnumObject_FromEnumValue(EnumWrapperGetterFunction getterF
 {
     auto safeExecution = [&]() -> PyObject*
     {
-        PyObject* enumEntryInstance = PyObject_CallFunction(getterFunction(), "(i)", enumValue);
-
-        Py_XINCREF(enumEntryInstance);  // Increase reference count to return a new reference
-        return enumEntryInstance;
+        // PyObject_CallFunction already returns a new reference (or NULL with an exception set)
+        return PyObject_CallFunction(getterFunction(), "(i)", static_cast<int>(enumValue));
     };
 
     PYDIA_SAFE_TRY({ return safeExecution(); });
@@ -82,21 +80,48 @@ static PyObject* createEnumObject(PyObject* module, const char* name, std::initi
 
     for (auto& item : items)
     {
-        PyDict_SetItemString(pyEnumDict, item.first, PyLong_FromLong(item.second));
+        PyObject* pyValue = PyLong_FromLong(item.second);
+        if (!pyValue)
+        {
+            Py_DECREF(pyEnumDict);
+            return NULL;
+        }
+
+        // PyDict_SetItemString does not steal the reference to the value
+        const int setResult = PyDict_SetItemString(pyEnumDict, item.first, pyValue);
+        Py_DECREF(pyValue);
+        if (0 > setResult)
+        {
+            Py_DECREF(pyEnumDict);
+            return NULL;
+        }
     }
 
     PyObject* pyEnumModule = PyImport_ImportModule("enum");
     if (pyEnumModule == NULL)
     {
-        Py_CLEAR(pyEnumDict);
+        Py_DECREF(pyEnumDict);
+        return NULL;
     }
 
     PyObject* pyEnumType = PyObject_CallMethod(pyEnumModule, "IntEnum", "sO", name, pyEnumDict);
 
-    Py_CLEAR(pyEnumDict);
-    Py_CLEAR(pyEnumModule);
+    Py_DECREF(pyEnumDict);
+    Py_DECREF(pyEnumModule);
+    if (!pyEnumType)
+    {
+        return NULL;
+    }
 
-    PyModule_AddObject(module, name, pyEnumType);
+    // PyModule_AddObject steals the reference only on success
+    Py_INCREF(pyEnumType);
+    if (0 > PyModule_AddObject(module, name, pyEnumType))
+    {
+        Py_DECREF(pyEnumType);  // The reference which was not stolen
+        Py_DECREF(pyEnumType);  // The reference we own
+        return NULL;
+    }
+    // The caller keeps a reference of its own in the global enum wrapper pointer
     return pyEnumType;
 }
 
@@ -234,6 +259,27 @@ PyObject* pydia_createDiaEnumWrappings(PyObject* module)
                                                                      {{"Private", static_cast<int>(dia::AccessModifier::Private)},
                                                                       {"Public", static_cast<int>(dia::AccessModifier::Public)},
                                                                       {"Protected", static_cast<int>(dia::AccessModifier::Protected)}})))
+    {
+        return NULL;
+    }
+
+    // Without this enum, get_calling_convention() would call a NULL wrapper
+    if (NULL == (g_diaCallingConventionEnumWrappings = createEnumObject(
+                     module, "CallingConvention",
+                     {{"NearC", static_cast<int>(dia::CvCall::NearC)},           {"FarC", static_cast<int>(dia::CvCall::FarC)},
+                      {"NearPascal", static_cast<int>(dia::CvCall::NearPascal)}, {"FarPascal", static_cast<int>(dia::CvCall::FarPascal)},
+                      {"NearFast", static_cast<int>(dia::CvCall::NearFast)},     {"FarFast", static_cast<int>(dia::CvCall::FarFast)},
+                      {"Skipped", static_cast<int>(dia::CvCall::Skipped)},       {"NearStd", static_cast<int>(dia::CvCall::NearStd)},
+                      {"FarStd", static_cast<int>(dia::CvCall::FarStd)},         {"NearSys", static_cast<int>(dia::CvCall::NearSys)},
+                      {"FarSys", static_cast<int>(dia::CvCall::FarSys)},         {"ThisCall", static_cast<int>(dia::CvCall::ThisCall)},
+                      {"MipsCall", static_cast<int>(dia::CvCall::MipsCall)},     {"Generic", static_cast<int>(dia::CvCall::Generic)},
+                      {"AlphaCall", static_cast<int>(dia::CvCall::AlphaCall)},   {"PpcCall", static_cast<int>(dia::CvCall::PpcCall)},
+                      {"ShCall", static_cast<int>(dia::CvCall::ShCall)},         {"ArmCall", static_cast<int>(dia::CvCall::ArmCall)},
+                      {"Am33Call", static_cast<int>(dia::CvCall::Am33Call)},     {"TriCall", static_cast<int>(dia::CvCall::TriCall)},
+                      {"Sh5Call", static_cast<int>(dia::CvCall::Sh5Call)},       {"M32rCall", static_cast<int>(dia::CvCall::M32rCall)},
+                      {"ClrCall", static_cast<int>(dia::CvCall::ClrCall)},       {"Inline", static_cast<int>(dia::CvCall::Inline)},
+                      {"NearVector", static_cast<int>(dia::CvCall::NearVector)}, {"Swift", static_cast<int>(dia::CvCall::Swift)},
+                      {"Reserved", static_cast<int>(dia::CvCall::Reserved)}})))
     {
         return NULL;
     }
