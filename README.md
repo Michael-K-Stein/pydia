@@ -97,17 +97,17 @@ $env:PYTHON_HOME = python -c "import sys; print(sys.base_prefix)"
 # Optional: only needed if the DIA SDK isn't at <VS install>\DIA SDK.
 # $env:DIA_SDK_DIR = "C:\path\to\DIA SDK"
 
-msbuild pydia.sln /m /p:Configuration=Release-3.12 /p:Platform=x64 /t:pydia
+msbuild pydia.sln /m /p:Configuration=Release-Python /p:Platform=x64 /t:pydia
 ```
 
-Alternatively, open `pydia.sln` in Visual Studio and build the `Release-3.12 | x64`
-configuration (the name is historical; it builds for whichever Python `PYTHON_HOME` points at). The build produces `pydia3.pyd` and stages a ready-to-package
-folder at `x64\Release-3.12\package`.
+Alternatively, open `pydia.sln` in Visual Studio and build the `Release-Python | x64`
+configuration (it builds for whichever Python `PYTHON_HOME` points at). The build produces `pydia3.pyd` and stages a ready-to-package
+folder at `x64\Release-Python\package`.
 
 ### Build and install a wheel
 
 ```powershell
-cd x64\Release-3.12\package
+cd x64\Release-Python\package
 python -m pip install build
 python -m build --wheel
 python -m pip install (Get-ChildItem dist\*.whl).FullName
@@ -118,7 +118,7 @@ python -c "import pydia3; print(pydia3.DataSource)"
 
 ```powershell
 python -m pip install pytest
-$env:PYTHONPATH = "$PWD\x64\Release-3.12\package"
+$env:PYTHONPATH = "$PWD\x64\Release-Python\package"
 python -m pytest
 ```
 
