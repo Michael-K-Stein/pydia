@@ -45,3 +45,26 @@ jobs:
           python -m venv "$env:RUNNER_TEMP\smoke"
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -m pip install (Get-ChildItem x64/Release-3.12/package/dist/*.whl).FullName
           & "$env:RUNNER_TEMP\smoke\Scripts\python.exe" -I -c "import pydia3; print(pydia3.DataSource)"
+
+      - name: Fetch test resources
+        run: python .github/scripts/fetch_test_resources.py
+
+      - name: Run PyTests
+        shell: pwsh
+        working-directory: PyTests
+        run: |
+          python -m pip install pytest
+          $env:PYTHONPATH = "$env:GITHUB_WORKSPACE\x64\Release-3.12\package"
+          python -m pytest
+
+      # DiaLib is independent of the Python version, so test it once.
+      - name: Build and run CTests
+        if: matrix.python == '3.12'
+        shell: pwsh
+        run: |
+          msbuild pydia.sln /m /p:Configuration=CTest /p:Platform=x64 /t:CTests
+          # The tests locate their resources relative to the working directory.
+          Push-Location x64/Debug
+          & "$(vswhere -latest -property installationPath)\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" CTests.dll
+          if ($LASTEXITCODE -ne 0) { throw "CTests failed" }
+          Pop-Location
