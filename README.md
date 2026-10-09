@@ -1,4 +1,4 @@
-# pydia
+# pydia3
 
 ## The ultimate Python wrapper for the [Microsoft's DIA SDK (Debug Interface Access)](https://learn.microsoft.com/en-us/visualstudio/debugger/debug-interface-access/debug-interface-access-sdk)
 
@@ -6,16 +6,16 @@
 
 ## Goal
 
-**pydia** aims to ease the manual handling of [PDB](https://en.wikipedia.org/wiki/Program_database) files. No more hacking together some [IDA-Python](https://python.docs.hex-rays.com/) - you can now use your favorite python ditribution and simply install a package!
-**pydia** makes all the common functionality used when working with PDB files extremely accessible.
+**pydia3** aims to ease the manual handling of [PDB](https://en.wikipedia.org/wiki/Program_database) files. No more hacking together some [IDA-Python](https://python.docs.hex-rays.com/) - you can now use your favorite python ditribution and simply install a package!
+**pydia3** makes all the common functionality used when working with PDB files extremely accessible.
 
 ### My future vision
 
-Hopefully, we can make **pydia** so powerful we will be able to accurately recreate header files from PDBs alone.
+Hopefully, we can make **pydia3** so powerful we will be able to accurately recreate header files from PDBs alone.
 
 ## How?
 
-The ideaology of **pydia** is as follows:
+The ideaology of **pydia3** is as follows:
 
 * Every DIA2 SDK [COM](https://learn.microsoft.com/en-us/windows/win32/com/component-object-model--com--portal) function is wrapped by a neat C++ function which handles all memory allocation/de-allocation and reference count tracking. These C++ wrappers are found in DiaLib.
 * Each DIA2 SDK "class" is implemented as a [C-API Python](https://docs.python.org/3/c-api/) class in pydia (the sub-project).
@@ -40,7 +40,7 @@ The ideaology of **pydia** is as follows:
 
 ## Installation
 
-pydia is Windows-only (x64) and currently targets **CPython 3.12**.
+pydia3 is Windows-only (x64) and currently targets **CPython 3.12**.
 
 ```powershell
 pip install pydia3
