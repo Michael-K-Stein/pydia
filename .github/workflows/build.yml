@@ -67,7 +67,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "regsvr32 failed for $dll ($LASTEXITCODE)" }
 
       - name: Cache test resources
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: CTests/Resources
           key: test-resources-${{ hashFiles('.github/scripts/fetch_test_resources.py') }}
@@ -79,7 +79,7 @@ jobs:
       # once and let the later matrix jobs restore them from the cache.
       - name: Cache ad-hoc test resources
         id: adhoc-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: CTests/Resources/AdHoc/out
           key: adhoc-resources-${{ hashFiles('CTests/Resources/AdHoc/*.c', 'CTests/Resources/AdHoc/*.cpp', '.github/scripts/build_adhoc_resources.ps1') }}
